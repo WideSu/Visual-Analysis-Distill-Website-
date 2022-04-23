@@ -14,7 +14,7 @@ output:
  
 ## Bio
 
-Huang Anni studies neural networks and their applications at Singapore Management University. Her research focuses on time-series analysis in semi-conductor domain and reinforcement learning in gaming industry. She frequently collaborates with researchers who study machine learning, computer vision, and cognitive science.
+Huang Anni studies neural networks and their applications at Singapore Management University. Her research focuses on time-series analysis in semi-conductor domain and reinforcement learning in gaming industry. She frequently collaborates with researchers who study machine learning, and cognitive science.
 
 ## Education
 
