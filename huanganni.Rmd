@@ -1,0 +1,34 @@
+---
+title: "Huang Anni"
+image: "HuangAnni.jpeg"
+links:
+  - label: LinkedIn
+    url: "https://www.linkedin.com/in/annihuang2021//"
+  - label: GitHub
+    url: "https://github.com/WideSu"
+  - label: Email
+    url: "annihuang.2021@mitb.smu.edu.sg"
+output:
+  postcards::trestles
+---
+ 
+## Bio
+
+Huang Anni studies neural networks and their applications at Singapore Management University. Her research focuses on time-series analysis in semi-conductor domain and reinforcement learning in gaming industry. She frequently collaborates with researchers who study machine learning, computer vision, and cognitive science.
+
+## Education
+
+**Sinagpore Management University** | Singapore
+
+Master in Artificial Intelligence | August 2021 - Feburary 2023
+
+**Huaqiao University** | Fujian Province, China
+
+B.S. in Computer Science | September 2017 - June 2021
+
+## Experience
+**Singapore Management University** | Research Assistant | June 2022 - Onwards
+
+**IKAS Industry** | Machine Learning Engineer Intern | December 2021 - June 2022
+
+**Huaqiao University** | Research Assistant | January 2019 - July 2019

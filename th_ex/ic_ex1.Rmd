@@ -1,0 +1,109 @@
+---
+title: "In-class Excersied 1"
+site: distill::distill_website
+---
+```{r, setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE,
+                      eval=TRUE,
+                      warning=FALSE,
+                      message=FALSE)
+```
+
+Before we get started, it is important for us to ensure that the required R packages have been installed. If yes, we will load the R pacakges. If they have yet to be installed, we will install the R packages and load them onto R environment.
+```{r}
+packages = c('tidyverse','ggdist','gghalves')
+for(p in packages){
+if(!require(p, character.only = T)){
+install.packages(p)
+}
+library(p, character.only = T)
+}
+```
+
+The code chunk below imports exam_data.csv into R environment using read_csv() function of readr package.
+```{r}
+exam_data <- read_csv("./data/Exam_data.csv")
+```
+## ggplot2
+
+- <span style="color: DodgerBlue">Data</span>: The dataset being plotted. 
+- <span style="color: DodgerBlue">Aesthetics</span>: take attributes of the data and use them to influence visual characteristics, such as position, colours, size, shape, or transparency. 
+- <span style="color: DodgerBlue">Geometrics</span>: The visual elements used for our data, such as point, bar or line. 
+<img width="485" alt="image" src="https://user-images.githubusercontent.com/44923423/164900374-6f6386dd-38db-49cd-a8a2-685b7fe35ca0.png">
+- <span style="color: DodgerBlue">Facets</span>: split the data into subsets to create multiple variations of the same graph (paneling, multiple plots).
+- <span style="color: DodgerBlue">Statistics</span>: statiscal transformations that summarise data (e.g. mean, confidence intervals).
+Coordinate systems define the plane on which data are mapped on the graphic. 
+- <span style="color: DodgerBlue">Themes</span>: modify all non-data components of a plot, such as main title, sub-title, y-aixs title, or legend background.
+
+### Aethetics
+The code chunk on the right add the aesthetic element into the plot.
+Notice that ggplot includes the x-axis and the axis's label.
+```{r}
+ggplot(data=exam_data, aes(x= MATHS))
+```
+
+### Geometric Objects: geom_bar
+The code chunk below plots a bar chart.
+```{r}
+ggplot(data=exam_data,
+aes(x=RACE)) +
+geom_bar()
+```
+
+### Geometric Objects: geom_dotplot
+In a dot plot, the width of a dot corresponds to the bin width (or maximum width, depending on the binning algorithm), and dots are stacked, with each dot representing one observation.
+```{r}
+ggplot(data=exam_data,
+aes(x = MATHS)) +
+geom_dotplot(dotsize = 0.5)
+```
+
+The code chunk below performs the following two steps:
+
+- scale_y_continuous() is used to turn off the y-axis, and 
+- binwidth argument is used to change the binwidth to 2.5.
+```{r}
+ggplot(data=exam_data, aes(x = MATHS)) + 
+  geom_dotplot(binwidth=2.5, dotsize = 0.5) + 
+  scale_y_continuous(NULL, breaks = NULL)
+```
+
+```{r}
+ggplot(data=exam_data,
+aes(x = MATHS)) +
+geom_dotplot(binwidth=2.5,
+dotsize = 0.5) +
+scale_y_continuous(NULL,
+breaks = NULL)
+ggplot(data=exam_data,
+aes(x = MATHS)) +
+geom_histogram()
+ggplot(data=exam_data,
+aes(x= MATHS,
+fill = GENDER)) +
+geom_histogram(bins=20,
+color="grey30")
+ggplot(data=exam_data,
+aes(y = MATHS,
+x= GENDER)) +
+geom_boxplot()
+ggplot(data=exam_data,
+aes(y = MATHS,
+x= GENDER)) +
+geom_boxplot() +
+geom_point(position="jitter",
+size = 0.5)
+ggplot(data=exam_data,
+aes(y = MATHS,
+x= GENDER)) +
+geom_violin()
+ggplot(data=exam_data,
+aes(y = MATHS,
+x= GENDER)) +
+geom_violin(fill="light blue") +
+geom_boxplot(alpha=0.5)
+ggplot(data=exam_data,
+aes(x= MATHS,
+y=ENGLISH)) +
+geom_point()
+```

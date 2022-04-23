@@ -5,12 +5,20 @@ site: distill::distill_website
 # 1.0 Introduction
 
 This is a visual analysis project which uses the data from [VAST Challenge 2022](https://vast-challenge.github.io/2022/). 
-- Data: Participants.csv
-Contains information about the residents of Engagement,OH that have a greed to participate in this study.
-- Packages: tidyverse, ggdist, gghalves
-The data is processed by using appropriate tidyverse family of packages and the statistical graphics is prepared using ggplot2 and its extensions.
 
-```{r include=FALSE}
+- **Data: Participants.csv**: Contains information about the residents of Engagement,OH that have a greed to participate in this study.
+
+- Packages: tidyverse, ggdist, gghalves
+The data is processed by using appropriate **tidyverse** family of packages and the statistical graphics is prepared using **ggplot2** and its **extensions**.
+
+```{r, setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE,
+                      eval=TRUE,
+                      warning=FALSE,
+                      message=FALSE)
+```
+
+```{r}
 packages = c('tidyverse','ggdist','gghalves')
 for(p in packages){
 if(!require(p, character.only = T)){
@@ -38,61 +46,7 @@ participants_data <- read_csv("./data/Participants.csv")
 # str(participants_data)
 glimpse(participants_data)
 ```
-```{r}
-exam_data <- read_csv("data/Exam_data.csv")
-ggplot(data=exam_data,
-aes(x=RACE)) +
-geom_bar()
-ggplot(data=exam_data,
-aes(x = MATHS)) +
-geom_dotplot(dotsize = 0.5)
-ggplot(data=exam_data,
-aes(x = MATHS)) +
-geom_dotplot(binwidth=2.5,
-dotsize = 0.5) +
-scale_y_continuous(NULL,
-breaks = NULL)
-ggplot(data=exam_data,
-aes(x = MATHS)) +
-geom_histogram()
-ggplot(data=exam_data,
-aes(x= MATHS,
-fill = GENDER)) +
-geom_histogram(bins=20,
-color="grey30")
-ggplot(data=exam_data,
-aes(y = MATHS,
-x= GENDER)) +
-geom_boxplot()
-ggplot(data=exam_data,
-aes(y = MATHS,
-x= GENDER)) +
-geom_boxplot() +
-geom_point(position="jitter",
-size = 0.5)
-ggplot(data=exam_data,
-aes(y = MATHS,
-x= GENDER)) +
-geom_violin()
-ggplot(data=exam_data,
-aes(y = MATHS,
-x= GENDER)) +
-geom_violin(fill="light blue") +
-geom_boxplot(alpha=0.5)
-ggplot(data=exam_data,
-aes(x= MATHS,
-y=ENGLISH)) +
-geom_point()
-```
 
-```{r layout="l-body-outset", preview=TRUE}
-ggplot(data=participants_data, aes(x = age,fill=interestGroup)) +
-geom_histogram(bins=20,
-boundary = 100,
-color="black",
-fill="light blue") +
-ggtitle("Distribution of Age")
-```
 
 ```{r layout="l-body-outset", preview=TRUE}
 ggplot(data=participants_data,
@@ -100,9 +54,9 @@ aes(y = age,
 x= educationLevel)) +
 geom_boxplot()
 ```
-
+Violin plot for 
 ```{r layout="l-body-outset", preview=TRUE}
 ggplot(data=participants_data,
-aes(y = age,
-x= interestGroup)) +geom_violin()
+aes(y = age,x= interestGroup)) +geom_violin()+
+ggtitle("Distribution of Age in different Interest Group")
 ```

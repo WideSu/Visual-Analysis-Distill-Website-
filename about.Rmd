@@ -7,3 +7,9 @@ description: |
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 ```
+```{r}
+install.packages('postcards')
+```
+```{r}
+postcards::create_postcard(file = "huanganni.Rmd", template = "trestles")
+```
