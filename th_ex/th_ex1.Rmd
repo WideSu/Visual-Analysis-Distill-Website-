@@ -38,7 +38,7 @@ Firstly, we need to import our dataset. The source file is in csv format, and co
 - age: (integer):participant’s age in years at the start of the study 
 - educationLevel(stringfactor):the participant’s education level,one of: {"Low","HighSchoolOrCollege","Bachelors","Graduate"}
 - interestGroup(char):a char representing the participant’s stated primary interest
-- joviality(float):avaluerangingfrom[0,1]indicatingtheparticipant’soverall
+- joviality(float):a value ranging from[0,1] indicating the participant’s overall happiness level at the start of the study
 ```{r layout="l-body-outset", preview=TRUE}
 # Reading the csv file as a tbl_df
 participants_data <- read_csv("./data/Participants.csv")
