@@ -5,3 +5,6 @@
 
 [(netify website)](https://master--huanganni.netlify.app/)
 [(tableau website)](https://public.tableau.com/app/profile/huang.anni/viz/In-class-exc2/Dashboard1?publish=yes)
+
+## How to choose the right visualization?
+![Uploading image.png…]()
