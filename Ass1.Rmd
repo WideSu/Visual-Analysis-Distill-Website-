@@ -3,6 +3,7 @@ title: "Take-home Excersied 1"
 site: distill::distill_website
 ---
 # 1.0 Introduction
+
 This is a visual analysis project which uses the data from [VAST Challenge 2022](https://vast-challenge.github.io/2022/). 
 - Data: Participants.csv
 Contains information about the residents of Engagement,OH that have a greed to participate in this study.
