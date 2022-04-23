@@ -7,4 +7,4 @@
 [(tableau website)](https://public.tableau.com/app/profile/huang.anni/viz/In-class-exc2/Dashboard1?publish=yes)
 
 ## How to choose the right visualization?
-![Uploading image.png…]()
+<img width="649" alt="image" src="https://user-images.githubusercontent.com/44923423/164896049-0c3d130d-2dd8-4f4f-878e-3a1cda895fca.png">
