@@ -21,6 +21,7 @@ library(p, character.only = T)
 ```
 
 # Read-in data
+
 Firstly, we need to import our dataset. The source file is in csv format, and consists of . Hence, read_csv() of the readr package is used to import the data.It has 7 attributes.
 - participantId: int
 - householdSize: int
@@ -29,6 +30,7 @@ Firstly, we need to import our dataset. The source file is in csv format, and co
 - educationLevel(stringfactor):the participant’s education level,one of: {"Low","HighSchoolOrCollege","Bachelors","Graduate"}
 - interestGroup(char):a char representing the participant’s stated primary interest
 - joviality(float):avaluerangingfrom[0,1]indicatingtheparticipant’soverall
+
 ```{r layout="l-body-outset", preview=TRUE}
 # Reading the csv file as a tbl_df
 participants_data <- read_csv("./data/Participants.csv")
