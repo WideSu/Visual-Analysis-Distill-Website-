@@ -1,5 +1,5 @@
 ---
-title: "Take-home Excersied 1"
+title: "Take-home Excercise 1"
 site: distill::distill_website
 ---
 # 1.0 Introduction

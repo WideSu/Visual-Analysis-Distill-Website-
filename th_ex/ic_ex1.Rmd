@@ -1,5 +1,5 @@
 ---
-title: "In-class Excersied 1"
+title: "In-class Excercise 1"
 site: distill::distill_website
 ---
 ```{r, setup, include=FALSE}

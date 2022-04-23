@@ -11,3 +11,8 @@ Lesson: Saturday 12:00pm to 3:15pm
 Venue: SCIS Seminar Rm B1-1
 Syllabus: [click here](https://isss608-ay2021-22april.netlify.app/syllabus.html)
 Upcoming lectures and assignments: [click here](https://isss608-ay2021-22april.netlify.app/lesson.html)
+
+# Table of contents
+- Week 1
+  - [In-class excercise 1](https://huanganni.netlify.app/ic_ex1.html)
+  - [Take-home excercise 1](https://huanganni.netlify.app/th_ex/th_ex1.html)
