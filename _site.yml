@@ -1,0 +1,25 @@
+name: "VA"
+title: "Data Analytics Journey"
+description: |
+  Data Analytics Journey
+output_dir: "docs"
+navbar:
+  right:
+    - text: "Home"
+      href: index.html
+    - text: "About"
+      href: about.html
+  left:
+    - text: "DataViz Makeover"
+      menu:
+      - text: "DataViz Makeover1"
+        href: "DataViz Makeover1"
+      - text: "DataViz Makeover2"
+        href: "DataViz Makeover2"
+    - text: "Take-home Excercise"
+      menu:
+      - text: "Take-home Excercise1"
+        href: "Take-home Excercise1"
+      - text: "Take-home Excercise2"
+        href: "Take-home Excercise2"
+output: distill::distill_article
