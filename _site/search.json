@@ -6,21 +6,21 @@
       "description": "Some additional details about the blog",
       "author": [],
       "contents": "\n\n\n\n",
-      "last_modified": "2022-04-23T13:14:51+08:00"
+      "last_modified": "2022-04-23T13:16:33+08:00"
     },
     {
       "path": "Ass1.html",
       "title": "Take-home Excersied 1",
       "author": [],
       "contents": "\n1.0 Introduction\nThis is a visual analysis project which uses the data from VAST Challenge 2022. -\nData: Participants.csv Contains information about the residents of\nEngagement,OH that have a greed to participate in this study. -\nPackages: tidyverse, ggdist, gghalves The data is processed by using\nappropriate tidyverse family of packages and the statistical graphics is\nprepared using ggplot2 and its extensions.\nRead-in data\nFirstly, we need to import our dataset. The source file is in csv\nformat, and consists of . Hence, read_csv() of the readr package is used\nto import the data.It has 7 attributes. - participantId: int -\nhouseholdSize: int - haveKids(boolean):whether there\narechildrenlivingintheparticipant’shousehold - age:\n(integer):participant’s age in years at the start of the study -\neducationLevel(stringfactor):the participant’s education level,one of:\n{“Low”,“HighSchoolOrCollege”,“Bachelors”,“Graduate”} -\ninterestGroup(char):a char representing the participant’s stated primary\ninterest -\njoviality(float):avaluerangingfrom[0,1]indicatingtheparticipant’soverall\n\n\n# Reading the csv file as a tbl_df\nparticipants_data <- read_csv(\"./data/Participants.csv\")\n# Inspecting the structure of the dataset\n# str(participants_data)\nglimpse(participants_data)\n\n\nRows: 1,011\nColumns: 7\n$ participantId  <dbl> 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13,…\n$ householdSize  <dbl> 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, …\n$ haveKids       <lgl> TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRUE, TRU…\n$ age            <dbl> 36, 25, 35, 21, 43, 32, 26, 27, 20, 35, 48, 2…\n$ educationLevel <chr> \"HighSchoolOrCollege\", \"HighSchoolOrCollege\",…\n$ interestGroup  <chr> \"H\", \"B\", \"A\", \"I\", \"H\", \"D\", \"I\", \"A\", \"G\", …\n$ joviality      <dbl> 0.001626703, 0.328086500, 0.393469590, 0.1380…\n\n\n\nexam_data <- read_csv(\"data/Exam_data.csv\")\nggplot(data=exam_data,\naes(x=RACE)) +\ngeom_bar()\n\n\n\nggplot(data=exam_data,\naes(x = MATHS)) +\ngeom_dotplot(dotsize = 0.5)\n\n\n\nggplot(data=exam_data,\naes(x = MATHS)) +\ngeom_dotplot(binwidth=2.5,\ndotsize = 0.5) +\nscale_y_continuous(NULL,\nbreaks = NULL)\n\n\n\nggplot(data=exam_data,\naes(x = MATHS)) +\ngeom_histogram()\n\n\n\nggplot(data=exam_data,\naes(x= MATHS,\nfill = GENDER)) +\ngeom_histogram(bins=20,\ncolor=\"grey30\")\n\n\n\nggplot(data=exam_data,\naes(y = MATHS,\nx= GENDER)) +\ngeom_boxplot()\n\n\n\nggplot(data=exam_data,\naes(y = MATHS,\nx= GENDER)) +\ngeom_boxplot() +\ngeom_point(position=\"jitter\",\nsize = 0.5)\n\n\n\nggplot(data=exam_data,\naes(y = MATHS,\nx= GENDER)) +\ngeom_violin()\n\n\n\nggplot(data=exam_data,\naes(y = MATHS,\nx= GENDER)) +\ngeom_violin(fill=\"light blue\") +\ngeom_boxplot(alpha=0.5)\n\n\n\nggplot(data=exam_data,\naes(x= MATHS,\ny=ENGLISH)) +\ngeom_point()\n\n\n\n\n\n\nggplot(data=participants_data, aes(x = age,fill=interestGroup)) +\ngeom_histogram(bins=20,\nboundary = 100,\ncolor=\"black\",\nfill=\"light blue\") +\nggtitle(\"Distribution of Age\")\n\n\n\n\n\n\nggplot(data=participants_data,\naes(y = age,\nx= educationLevel)) +\ngeom_boxplot()\n\n\n\n\n\n\nggplot(data=participants_data,\naes(y = age,\nx= interestGroup)) +geom_violin()\n\n\n\n\n\n\n\n",
-      "last_modified": "2022-04-23T13:14:56+08:00"
+      "last_modified": "2022-04-23T13:16:38+08:00"
     },
     {
       "path": "index.html",
       "title": "Data Analytics Journey",
       "author": [],
       "contents": "\n\n\n\n",
-      "last_modified": "2022-04-23T13:14:56+08:00"
+      "last_modified": "2022-04-23T13:16:38+08:00"
     }
   ],
   "collections": ["posts/posts.json"]
