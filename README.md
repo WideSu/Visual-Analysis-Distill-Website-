@@ -14,4 +14,4 @@ Anticipating rapid growth, the city of Engagement, Ohio USA is doing a participa
 <img width="649" alt="image" src="https://user-images.githubusercontent.com/44923423/164896049-0c3d130d-2dd8-4f4f-878e-3a1cda895fca.png">
 
 ## Reference books
-Healy, Kieran (2019) Data Visualization: A practical introduction [(online version)[https://socviz.co/]
+Healy, Kieran (2019) Data Visualization: A practical introduction [(online version)](https://socviz.co/)
