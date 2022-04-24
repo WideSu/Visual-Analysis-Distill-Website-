@@ -18,13 +18,13 @@ knitr::opts_chunk$set(echo=TRUE,
                       message=FALSE)
 ```
 
-```{r}
+```{r layout="l-body-outset", preview=TRUE}
 packages = c('tidyverse','ggdist','gghalves')
 for(p in packages){
-if(!require(p, character.only = T)){
-install.packages(p)
-}
-library(p, character.only = T)
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p,character.only = T)
 }
 ```
 
@@ -44,9 +44,13 @@ Firstly, we need to import our dataset. The source file is in csv format, and co
 participants_data <- read_csv("./data/Participants.csv")
 # Inspecting the structure of the dataset
 # str(participants_data)
-glimpse(participants_data)
+str(participants_data)
 ```
 
+```{r}
+# Convert speed_vector to ordered factor vector
+education_factor <- factor(participants_data['educationLevel'],ordered=TRUE,levels=c("Low","HighSchoolOrCollege","Bachelors","Graduate"))
+```
 
 ```{r layout="l-body-outset", preview=TRUE}
 ggplot(data=participants_data,
