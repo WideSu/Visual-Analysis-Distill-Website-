@@ -52,13 +52,16 @@ str(participants_data)
 # Joviality vs educationLevel
 As the educationLevel goes up from highSchoolOrCollege to graduate, people are generally happier. 
 ```{r}
+participants_data$educationLevel <-factor(participants_data$educationLevel,ordered=TRUE,levels=c('Low','HighSchoolOrCollege',"Bachelors","Graduate"))
 agg_happy <- participants_data %>% 
   select(c("educationLevel","joviality")) %>%
   group_by(educationLevel) %>% 
   summarise(joviality=mean(joviality))
-new_agg_happy <- agg_happy[order(educationLevel),]
-head(new_agg_happy)
-ggplot(participants_data, aes(x = joviality, y = educationLevel, fill = educationLevel)) +
+
+happy_sorted <- agg_happy %>%
+  arrange(desc(educationLevel))
+
+p1=ggplot(participants_data, aes(x = joviality, y = educationLevel, fill = educationLevel)) +
   geom_density_ridges(geom = "density_ridges_gradient", 
                       calc_ecdf = TRUE,
                       quantiles = 4, 
@@ -68,13 +71,27 @@ ggplot(participants_data, aes(x = joviality, y = educationLevel, fill = educatio
   scale_fill_viridis_d(name = "Quartiles")+
   ggtitle("Distribution of joviality \n in different Education Level")+
   theme(plot.title = element_text(size = 12))
-ggplot(data=agg_happy,
+p2=ggplot(data=happy_sorted,
       aes(y = joviality,
       x= educationLevel,
       group=1)) +
   geom_line(linetype = "dashed",color='black',arrow = arrow(type = "closed"))+
-  geom_point()+
-  ggtitle("Change of average joviality when Education Level increase")+
+  geom_point(stat = "identity",
+             position = "identity")+
+  ggtitle("Change of average joviality \n when Education Level increase")+
+  theme(plot.title = element_text(size = 12))
+p1/p2
+```
+```{r}
+ggplot(participants_data, aes(x = joviality, y = educationLevel, fill = educationLevel)) +
+  geom_density_ridges(geom = "density_ridges_gradient", 
+                      calc_ecdf = TRUE,
+                      quantiles = 4, 
+                      quantile_lines = TRUE,
+                      alpha = .2) +
+  theme_ridges() + 
+  scale_fill_viridis_d(name = "Quartiles")+
+  ggtitle("Distribution of joviality \n in different Education Level")+
   theme(plot.title = element_text(size = 12))
 ```
 
