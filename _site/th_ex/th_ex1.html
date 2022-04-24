@@ -420,6 +420,8 @@ glimpse(participants_data)</code></pre>
 ## $ educationLevel &lt;chr&gt; &quot;HighSchoolOrCollege&quot;, &quot;HighSchoolOrCollege&quot;, &quot;HighScho…
 ## $ interestGroup  &lt;chr&gt; &quot;H&quot;, &quot;B&quot;, &quot;A&quot;, &quot;I&quot;, &quot;H&quot;, &quot;D&quot;, &quot;I&quot;, &quot;A&quot;, &quot;G&quot;, &quot;D&quot;, &quot;D&quot;, …
 ## $ joviality      &lt;dbl&gt; 0.001626703, 0.328086500, 0.393469590, 0.138063446, 0.8…</code></pre>
+<pre class="r"><code># Convert speed_vector to ordered factor vector
+education_factor &lt;- factor(participants_data[&#39;educationLevel&#39;],ordered=TRUE,levels=c(&quot;Low&quot;,&quot;HighSchoolOrCollege&quot;,&quot;Bachelors&quot;,&quot;Graduate&quot;))</code></pre>
 <pre class="r"><code>ggplot(data=participants_data,
 aes(y = age,
 x= educationLevel)) +

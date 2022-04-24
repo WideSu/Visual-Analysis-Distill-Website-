@@ -115,28 +115,112 @@ ggplot(data=exam_data,
   geom_density()
 ```
 
+The code chunk below plots two kernel
+density lines by using **colour** or **fill** arguments of **aes()**
+```{r}
+ggplot(data=exam_data, 
+       aes(x = MATHS, colour = GENDER)) + 
+  geom_density()
+```
+
+### Geometric Objects: geom_boxplot
+The code chunk below plots boxplots by using geom_boxplot().
+
 ```{r}
 ggplot(data=exam_data,
 aes(y = MATHS,
 x= GENDER)) +
 geom_boxplot()
+```
+
+**Notches** are used in box plots to help visually assess whether the medians of distributions differ. If the notches do not overlap, this is evidence that the **medians** are different. The code chunk below plots the distribution of Maths scores by gender in notched plot instead of boxplot.
+```{r}
+ggplot(data=exam_data, 
+       aes(y = MATHS, x= GENDER)) + 
+  geom_boxplot(notch=TRUE)
+```
+
+### geom objects can be combined
+The code chunk below plots the data points on the boxplots by using both **geom_boxplot()** and **geom_point()**.
+
+```{r}
 ggplot(data=exam_data,
-aes(y = MATHS,
-x= GENDER)) +
-geom_boxplot() +
-geom_point(position="jitter",
+      aes(y = MATHS,
+      x= GENDER)) +
+  geom_boxplot() +
+  geom_point(position="jitter",
 size = 0.5)
+```
+
+### Geometric Objects: geom_violin
+Violin plots are a way of comparing multiple data distributions. With ordinary density curves, it is difficult to compare more than just a few distributions because the lines visually interfere with each other. With a violin plot, it's easier to compare several distributions since they're placed side by side. The code below plot the distribution of Maths score by gender in violin plot.
+```{r}
 ggplot(data=exam_data,
 aes(y = MATHS,
 x= GENDER)) +
 geom_violin()
+```
+
+### Geometric Objects: geom_violin() and geom_boxplot()
+The code chunk below combined a violin plot and a boxplot to show the distribution of Maths scores by gender.
+```{r}
 ggplot(data=exam_data,
 aes(y = MATHS,
 x= GENDER)) +
 geom_violin(fill="light blue") +
 geom_boxplot(alpha=0.5)
+```
+
+### Geometric Objects: geom_point()
+The code chunk below plots a scatterplot showing the Maths and English grades of pupils by using geom_point().
+```{r}
 ggplot(data=exam_data,
 aes(x= MATHS,
 y=ENGLISH)) +
 geom_point()
 ```
+
+## Statistics, stat
+
+- The Statistics functions statistically transform data, usually as some form of summary. For example: 
+  - frequency of values of a variable (bar graph) 
+  - a mean 
+  - a confidence limit 
+- There are two ways to use these functions: 
+  - add a stat_() function and override the default geom, or
+  - add a geom_()/ function and override the default stat.
+
+### Working with stat - the stat_summary() method
+```{r}
+ggplot(data=exam_data, 
+       aes(y = MATHS, x= GENDER)) + 
+  geom_boxplot() + 
+  stat_summary(geom = "point", 
+               fun.y="mean", 
+               colour ="red", 
+               size=4)
+```
+
+### Working with stat - the geom() method
+The code chunk below adding mean values by using geom_() function and overriding the default stat.
+```{r}
+ggplot(data=exam_data, 
+       aes(y = MATHS, x= GENDER)) + 
+  geom_boxplot() + 
+  geom_point(stat="summary", 
+             fun.y="mean", 
+             colour ="red", 
+             size=4)
+```
+
+### How to add a best fit curve on a scatterplot?
+In the code chunk below, geom_smooth() is used to plot a best fit curve on the scatterplot. 
+- The default method used is loess.
+```{r}
+ggplot(data=exam_data, 
+       aes(x= MATHS, y=ENGLISH)) +
+  geom_point() + 
+  geom_smooth(size=0.5)
+```
+
+The default smoothing method can be overridden as shown below.
