@@ -1,14 +1,6 @@
 {
   "articles": [
     {
-      "path": "about.html",
-      "title": "About this blog",
-      "description": "Some additional details about the blog",
-      "author": [],
-      "contents": "\n\n\n\n",
-      "last_modified": "2022-04-23T15:15:15+08:00"
-    },
-    {
       "path": "huanganni.html",
       "title": "Huang Anni",
       "author": [],
@@ -19,8 +11,8 @@
       "path": "index.html",
       "title": "Data Analytics Journey",
       "author": [],
-      "contents": "\nWelcome to the home page for HuangAnni’s\nassignments for ISSS608 Visual\nAnalytics and Applications.\nInstructor: Dr. Kam Tin Seong, Associate Professor of Information\nSystems (Practice) Lesson: Saturday 12:00pm to 3:15pm\nVenue: SCIS Seminar Rm B1-1 Syllabus: click\nhere Upcoming lectures and assignments: click\nhere\nTable of contents\nWeek 1 Distill Blog and R markdown\nIn-class\nexcercise 1\nTake-home\nexcercise 1\n\nWeek 2 Tableau\nIn-class\nexcercise 2\n\n",
-      "last_modified": "2022-04-24T15:53:25+08:00"
+      "contents": "\nWelcome to the home page for HuangAnni’s\nassignments for ISSS608 Visual\nAnalytics and Applications.\nInstructor: Dr. Kam Tin Seong, Associate Professor of Information\nSystems (Practice) Lesson: Saturday 12:00pm to 3:15pm\nVenue: SCIS Seminar Rm B1-1 Syllabus: click\nhere Upcoming lectures and assignments: click\nhere\nTable of contents\nWeek 1 Distill Blog and R markdown\nIn-class\nexcercise 1\nTake-home\nexcercise 1\n\nWeek 2 Tableau\nIn-class\nexcercise 2\nHand-out 2\n\n",
+      "last_modified": "2022-04-24T16:10:58+08:00"
     }
   ],
   "collections": ["posts/posts.json"]
