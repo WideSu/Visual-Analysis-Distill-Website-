@@ -1,0 +1,85 @@
+---
+title: "Hand-out 2"
+site: distill::distill_website
+---
+```{r, setup, include=FALSE}
+knitr::opts_chunk$set(echo=TRUE,
+                      eval=TRUE,
+                      warning=FALSE,
+                      message=FALSE)
+```
+
+# Import packaged
+```{r}
+packages = c('tidyverse', 'ggdist', 'ggridges',
+             'patchwork', 'ggthemes', 'hrbrthemes',
+             'ggrepel', 'ggforce')
+for(p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+
+# Read-in data
+
+- The code chunk below imports exam_data.csv into R environment using read_csv() function of readr package.
+
+- readr is one of the tidyverse package.
+
+- Year end examination grades of a cohort of primary 3 students from a local school.
+
+- There are a total of seven attributes. Four of them are categorical data type and the other three are in continuous data type.
+  - The categorical attributes are: ID, CLASS, GENDER and RACE.
+  - The continuous attributes are: MATHS, ENGLISH and SCIENCE.
+```{r}
+exam_data <- read_csv("data/Exam_data.csv")
+```
+
+# Beyond ggplot2 Annotation
+One of the challenge in plotting statistical graph is annotation, especially with large number of data points.
+```{r}
+ggplot(data=exam_data, 
+       aes(x= MATHS, 
+           y=ENGLISH)) +
+  geom_point() +
+  geom_smooth(method=lm, 
+              size=0.5) +  
+  geom_label(aes(label = ID), 
+             hjust = .5, 
+             vjust = -.5) +
+  coord_cartesian(xlim=c(0,100),
+                  ylim=c(0,100)) +
+  ggtitle("English scores versus Maths scores for Primary 3")
+```
+
+**ggrepel** is an extension of ggplot2 package which provides geoms for ggplot2 to repel overlapping text as in our examples on the right. We simply replace geom_text() by geom_text_repel() and geom_label() by geom_label_repel.
+```{r}
+ggplot(data=exam_data, 
+       aes(x= MATHS, 
+           y=ENGLISH)) +
+  geom_point() +
+  geom_smooth(method=lm, 
+              size=0.5) +  
+  geom_label_repel(aes(label = ID), 
+                   fontface = "bold") +
+  coord_cartesian(xlim=c(0,100),
+                  ylim=c(0,100)) +
+  ggtitle("English scores versus Maths scores for Primary 3")
+
+```
+# Beyond ggplot2 Themes
+ggplot2 comes with eight built-in themes, they are: theme_gray(), theme_bw(), theme_classic(), theme_dark(), theme_light(), theme_linedraw(), theme_minimal(), and theme_void().
+
+```{r}
+ggplot(data=exam_data, 
+             aes(x = MATHS)) +
+  geom_histogram(bins=20, 
+                 boundary = 100,
+                 color="grey25", 
+                 fill="grey90") +
+  theme_gray() +
+  ggtitle("Distribution of Maths scores")
+```
+
