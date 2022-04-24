@@ -19,9 +19,14 @@ knitr::opts_chunk$set(echo=TRUE,
 ```
 
 ```{r layout="l-body-outset", preview=TRUE}
-packages = c('tidyverse','ggdist','gghalves','readxl', 'knitr', 'ggrepel')
+packages = c('tidyverse', 'ggdist', 'ggridges',
+             'patchwork', 'ggthemes', 'hrbrthemes',
+             'ggrepel', 'ggforce')
 for(p in packages){
-  library(p,character.only = T)
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
 }
 ```
 
@@ -44,10 +49,93 @@ participants_data <- read_csv("./data/Participants.csv")
 str(participants_data)
 ```
 
+Are participants happy?
 ```{r}
-# Convert speed_vector to ordered factor vector
-participants_data$educationLevel <- factor(participants_data$educationLevel,ordered=TRUE,levels=c("Low","HighSchoolOrCollege","Bachelors","Graduate"))
-summary(participants_data$educationLevel)
+ggplot(data=participants_data,
+aes(x= joviality,
+fill = educationLevel)) +
+geom_histogram(bins=5,
+color="grey30")
+```
+
+```{r}
+table=table
+ggplot(data=participants_data, 
+       aes(y = age, x= haveKids)) + 
+  geom_boxplot() + 
+  geom_point(stat="summary", 
+             fun.y="mean", 
+             colour ="red", 
+             size=4)
+```
+
+```{r}
+devtools::install_github("psyteachr/introdataviz")
+ggplot(participants_data, 
+       aes(x = educationLevel, 
+           y = age, 
+           fill = haveKids)) + 
+  introdataviz::geom_split_violin(alpha = .4, 
+                                  trim = FALSE) + 
+  geom_boxplot(width = .2, 
+               alpha = .6, 
+               fatten = NULL, 
+               show.legend = FALSE) + 
+  stat_summary(fun.data = "mean_se", 
+               geom = "pointrange", 
+               show.legend = F, 
+               position = position_dodge(.175)) + 
+  scale_y_continuous(breaks = seq(0, 100, 20), 
+                      limits = c(0, 100)) + 
+  scale_fill_brewer(palette = "Dark2", 
+                    name = "Has Child")
+
+```
+```{r}
+ggplot(participants_data, aes(x = joviality, y = educationLevel, fill = educationLevel)) +
+  geom_density_ridges(geom = "density_ridges_gradient", 
+                      calc_ecdf = TRUE,
+                      quantiles = 4, 
+                      quantile_lines = TRUE,
+                      alpha = .2) +
+  theme_ridges() + 
+  scale_fill_viridis_d(name = "Quartiles")+
+  theme(legend.position = "none")
+```
+
+```{r}
+participants_data$age_state = ifelse(
+    test = participants_data$age > 30,
+    yes = "Old",
+    no = "Young"
+)
+# Make it a factor
+participants_data$age_state = factor(
+    participants_data$age_state,
+    levels = c("Old", "Young")
+)
+```
+
+Young people tend to be happier than old people.
+```{r}
+p1 = ggplot(data=subset(participants_data,age_state=='Young'), 
+       aes(x = joviality)) + 
+  geom_density() +
+  ggtitle("Distribution of joviality for young people")+
+  theme(plot.title = element_text(size = 10))
+p2 = ggplot(data=subset(participants_data,age_state=='Old'), 
+       aes(x = joviality)) + 
+  geom_density() +
+  ggtitle("Distribution of joviality for old people")+
+  theme(plot.title = element_text(size = 10))
+p3 = ggplot(data=participants_data,
+aes(x= joviality,
+fill = age_state)) +
+geom_density(alpha=0.2) +
+  annotate("text", x = 0.8, y = 1.2, label = "Young people tend\n to be happier",size=3,color='#4682B4') + 
+  ggtitle("Distribution of joviality in different Age Groups")+
+  theme(plot.title = element_text(size = 10))
+(p1 / p2) | p3
 ```
 
 ```{r layout="l-body-outset", preview=TRUE}

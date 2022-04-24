@@ -122,7 +122,7 @@ p1 = ggplot(data=subset(participants_data,age_state=='Young'),
        aes(x = joviality)) + 
   geom_density() +
   ggtitle("Distribution of joviality for young people")+
-  them_ipsum(axis_title_size = 18, base_size=15, grid='Y')
+  theme(plot.title = element_text(size = 10))
 p2 = ggplot(data=subset(participants_data,age_state=='Old'), 
        aes(x = joviality)) + 
   geom_density() +
@@ -132,7 +132,7 @@ p3 = ggplot(data=participants_data,
 aes(x= joviality,
 fill = age_state)) +
 geom_density(alpha=0.2) +
-  annotate("text", x = 0.8, y = 1.2, label = "Young people tend\n to be happier",size=3,color='#4682B4')
+  annotate("text", x = 0.8, y = 1.2, label = "Young people tend\n to be happier",size=3,color='#4682B4') + 
   ggtitle("Distribution of joviality in different Age Groups")+
   theme(plot.title = element_text(size = 10))
 (p1 / p2) | p3
