@@ -50,7 +50,7 @@ str(participants_data)
 ```
 
 # Joviality vs educationLevel
-As the educationLevel goes up from highSchoolOrCollege to graduate, people are generally happier. 
+As the educationLevel goes up from highSchoolOrCollege to graduate, people are generally happier at the start of the study.
 ```{r}
 participants_data$educationLevel <-factor(participants_data$educationLevel,ordered=TRUE,levels=c('Low','HighSchoolOrCollege',"Bachelors","Graduate"))
 agg_happy <- participants_data %>% 
@@ -61,7 +61,7 @@ agg_happy <- participants_data %>%
 happy_sorted <- agg_happy %>%
   arrange(desc(educationLevel))
 
-p1=ggplot(participants_data, aes(x = joviality, y = educationLevel, fill = educationLevel)) +
+p2=ggplot(participants_data, aes(x = joviality, y = educationLevel, fill = educationLevel)) +
   geom_density_ridges(geom = "density_ridges_gradient", 
                       calc_ecdf = TRUE,
                       quantiles = 4, 
@@ -71,7 +71,7 @@ p1=ggplot(participants_data, aes(x = joviality, y = educationLevel, fill = educa
   scale_fill_viridis_d(name = "Quartiles")+
   ggtitle("Distribution of joviality \n in different Education Level")+
   theme(plot.title = element_text(size = 12))
-p2=ggplot(data=happy_sorted,
+p1=ggplot(data=happy_sorted,
       aes(y = joviality,
       x= educationLevel,
       group=1)) +
@@ -79,20 +79,12 @@ p2=ggplot(data=happy_sorted,
   geom_point(stat = "identity",
              position = "identity")+
   ggtitle("Change of average joviality \n when Education Level increase")+
+  annotate("text", x = 4, y = 1, label = "People tend\n to be happier to study with higher education level \n at the start of the study",size=3,color='#4682B4') + 
   theme(plot.title = element_text(size = 12))
-p1/p2
-```
-```{r}
-ggplot(participants_data, aes(x = joviality, y = educationLevel, fill = educationLevel)) +
-  geom_density_ridges(geom = "density_ridges_gradient", 
-                      calc_ecdf = TRUE,
-                      quantiles = 4, 
-                      quantile_lines = TRUE,
-                      alpha = .2) +
-  theme_ridges() + 
-  scale_fill_viridis_d(name = "Quartiles")+
-  ggtitle("Distribution of joviality \n in different Education Level")+
-  theme(plot.title = element_text(size = 12))
+library(patchwork)
+p1/ p2 + plot_layout(guides='collect') & 
+  theme(legend.position='top') &
+  scale_fill_brewer(palette='Dark2')
 ```
 
 ```{r}
@@ -158,12 +150,14 @@ p3 = ggplot(data=participants_data,
 aes(x= joviality,
 fill = age_state)) +
 geom_density(alpha=0.2) +
-  annotate("text", x = 0.8, y = 1.2, label = "Young people tend\n to be happier",size=3,color='#4682B4') + 
+  annotate("text", x = 0.3, y = 0.4, label = "Young people tend\n to be happier",size=3,color='#4682B4') + 
   ggtitle("Distribution of joviality in different Age Groups")+
   theme(plot.title = element_text(size = 10))
-(p1 / p2) | p3
+(p1 / p2) | (p3+
+  scale_y_continuous(name="density", limits=c(0.0, 1.2)))
 ```
-#
+
+
 ```{r layout="l-body-outset", preview=TRUE}
 ggplot(data=participants_data,
 aes(y = age,
