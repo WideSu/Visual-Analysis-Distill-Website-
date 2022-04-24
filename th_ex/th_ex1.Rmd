@@ -19,11 +19,8 @@ knitr::opts_chunk$set(echo=TRUE,
 ```
 
 ```{r layout="l-body-outset", preview=TRUE}
-packages = c('tidyverse','ggdist','gghalves')
+packages = c('tidyverse','ggdist','gghalves','readxl', 'knitr', 'ggrepel')
 for(p in packages){
-  if(!require(p, character.only = T)){
-    install.packages(p)
-  }
   library(p,character.only = T)
 }
 ```
@@ -49,7 +46,8 @@ str(participants_data)
 
 ```{r}
 # Convert speed_vector to ordered factor vector
-education_factor <- factor(participants_data['educationLevel'],ordered=TRUE,levels=c("Low","HighSchoolOrCollege","Bachelors","Graduate"))
+participants_data$educationLevel <- factor(participants_data$educationLevel,ordered=TRUE,levels=c("Low","HighSchoolOrCollege","Bachelors","Graduate"))
+summary(participants_data$educationLevel)
 ```
 
 ```{r layout="l-body-outset", preview=TRUE}

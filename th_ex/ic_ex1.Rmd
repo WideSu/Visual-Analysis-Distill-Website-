@@ -54,8 +54,8 @@ geom_bar()
 In a dot plot, the width of a dot corresponds to the bin width (or maximum width, depending on the binning algorithm), and dots are stacked, with each dot representing one observation.
 ```{r}
 ggplot(data=exam_data,
-aes(x = MATHS)) +
-geom_dotplot(dotsize = 0.5)
+  aes(x = MATHS)) +
+  geom_dotplot(dotsize = 0.5)
 ```
 
 The code chunk below performs the following two steps:
@@ -68,16 +68,26 @@ ggplot(data=exam_data, aes(x = MATHS)) +
   scale_y_continuous(NULL, breaks = NULL)
 ```
 
+### geom_histogram
+
+In the code chunk below, geom_histogram() is used to a simple histogram by using values in MATHS field of exam_data.
 ```{r}
 ggplot(data=exam_data,
 aes(x = MATHS)) +
-geom_dotplot(binwidth=2.5,
-dotsize = 0.5) +
-scale_y_continuous(NULL,
-breaks = NULL)
-ggplot(data=exam_data,
-aes(x = MATHS)) +
 geom_histogram()
+```
+In the code chunk below, 
+
+- bins argument is used to change the number of bins to 20, 
+- fill argument is used to shade the histogram with light blue color, and color argument is used to change the outline colour of the bars in black
+```{r}
+ggplot(data=exam_data, 
+       aes(x= MATHS)) + 
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue")
+```
+```{r}
 ggplot(data=exam_data,
 aes(x= MATHS,
 fill = GENDER)) +
