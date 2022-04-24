@@ -68,7 +68,7 @@ ggplot(data=exam_data, aes(x = MATHS)) +
   scale_y_continuous(NULL, breaks = NULL)
 ```
 
-### geom_histogram
+### Geometric Objects: geom_histogram
 
 In the code chunk below, geom_histogram() is used to a simple histogram by using values in MATHS field of exam_data.
 ```{r}
@@ -76,6 +76,9 @@ ggplot(data=exam_data,
 aes(x = MATHS)) +
 geom_histogram()
 ```
+
+#### Modifying a geometric object by changing geom()
+
 In the code chunk below, 
 
 - bins argument is used to change the number of bins to 20, 
@@ -87,12 +90,32 @@ ggplot(data=exam_data,
                  color="black", 
                  fill="light blue")
 ```
+
+#### Modifying a geometric object by changing aes()
+
+- The code chunk below changes the interior colour of the histogram (i.e. fill) by using sub- group of aesthetic().
+- Note that this approach can be used to **colour, fill and alpha** of the geometric.
 ```{r}
 ggplot(data=exam_data,
 aes(x= MATHS,
 fill = GENDER)) +
 geom_histogram(bins=20,
 color="grey30")
+```
+
+### Geometric Objects: geom-density
+geom-density() computes and plots kernel density estimate, which is a smoothed version of the histogram. 
+
+It is a useful alternative to the histogram for continuous data that comes from an underlying smooth distribution. 
+
+The code below plots the distribution of Maths scores in a kernel density estimate plot.
+```{r}
+ggplot(data=exam_data, 
+       aes(x = MATHS)) + 
+  geom_density()
+```
+
+```{r}
 ggplot(data=exam_data,
 aes(y = MATHS,
 x= GENDER)) +
