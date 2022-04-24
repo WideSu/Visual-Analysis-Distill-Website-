@@ -18,4 +18,4 @@ Upcoming lectures and assignments: [click here](https://isss608-ay2021-22april.n
   - [Take-home excercise 1](https://huanganni.netlify.app/th_ex/th_ex1.html)
 - Week 2 Tableau
   - [In-class excercise 2](https://public.tableau.com/app/profile/huang.anni/viz/In-class-exc2/Dashboard1?publish=yes)
-  - [Hand-out 2]()
+  - [Hand-out 2](https://huanganni.netlify.app/th_ex/hd_2.html)
