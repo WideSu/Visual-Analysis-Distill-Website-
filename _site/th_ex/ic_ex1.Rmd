@@ -224,3 +224,441 @@ ggplot(data=exam_data,
 ```
 
 The default smoothing method can be overridden as shown below.
+```{r}
+ggplot(data=exam_data, 
+       aes(x= MATHS, y=ENGLISH)) + 
+  geom_point() + 
+  geom_smooth(method=lm, size=0.5)
+```
+
+### Facets
+
+- Facetting generates small multiples (sometimes also called trellis plot), each displaying a
+different subset of the data. 
+- Facets are an alternative to aesthetics for displaying additional discrete variables.
+- ggplot2 supports two types of factes, namely: facet_grid and facet_wrap.
+
+#### facet_wrap()
+
+- facet_wrap wraps a 1d sequence of panels into 2d.
+- This is generally a better use of screen space than facet_grid because most displays are roughly rectangular.
+
+#### Working with facet_wrap()
+The code chunk below plots a trellis plot
+using facet-wrap().
+```{r}
+ggplot(data=exam_data, 
+       aes(x= MATHS)) + 
+  geom_histogram(bins=20) + 
+  facet_wrap(~ CLASS)
+```
+
+#### facet_grid() function
+
+- facet_grid forms a matrix of panels defined by row and column facetting variables. 
+- It is most useful when you have two discrete variables, and all combinations of the variables exist in the data.
+
+#### Working with facet_grid()
+The code chunk below plots a trellis plot using facet_grid().
+```{r}
+ggplot(data=exam_data, 
+       aes(x= MATHS)) + 
+  geom_histogram(bins=20) + 
+  facet_grid(~ CLASS)
+```
+
+### Facetting
+Plot a trellis boxplot looks similar to the figure below.
+```{r}
+ggplot(data=exam_data, 
+       aes(y = MATHS, x= CLASS)) + 
+  geom_boxplot() + 
+  facet_grid(~ GENDER)
+```
+
+Plot a trellis boxplot looks similar to the figure below.
+```{r}
+ggplot(data=exam_data, 
+       aes(y = MATHS, x= CLASS)) + 
+  geom_boxplot() + 
+  facet_grid(GENDER ~.)
+```
+
+Plot a trellis boxplot looks similar to the figure below.
+```{r}
+ggplot(data=exam_data, 
+       aes(y = MATHS, x= GENDER)) + 
+  geom_boxplot() + 
+  facet_grid(GENDER ~ CLASS)
+```
+
+## Coordinates
+- The Coordinates functions map the position of objects onto the plane of the plot. 
+- There are a number of different possible coordinate systems to use, they are: coord_cartesian(): the default cartesian coordinate systems, where you specify x and y
+values (e.g. allows you to zoom in or out).
+  - coord_flip(): a cartesian system with the x and y flipped.
+  - coord_fixed(): a cartesian system with a "fixed" aspect ratio (e.g. 1.78 for a
+"widescreen" plot).
+  - coord_quickmap(): a coordinate system that approximates a good aspect ratio for
+maps.
+
+### Working with Coordinate
+By the default, the bar chart of ggplot2 is in vertical form.
+The code chunk below flips the horizontal bar chart into vertical bar chart by using coord_flip().
+```{r}
+ggplot(data=exam_data, 
+       aes(x=RACE)) + 
+  geom_bar() + 
+  coord_flip()
+```
+
+#### How to change to the y- and x-axis range?
+The code chunk below fixed both the y-axis and x-axis range from 0-100.
+```{r}
+ggplot(data=exam_data, 
+       aes(x= MATHS, y=ENGLISH)) + 
+  geom_point() + 
+  geom_smooth(method=lm, size=0.5) + 
+  coord_cartesian(xlim=c(0,100), 
+                  ylim=c(0,100))
+```
+
+## Themes
+- Themes control elements of the graph not related to the data. For example:
+  - background colour 
+  - size of fonts
+  - gridlines
+  - colour of labels
+- Built-in themes include: 
+  - theme_gray() (default) 
+  - theme_bw()
+  - theme_classic()
+- A list of theme can be found at http://ggplot2.tidyverse.org/reference/theme.html. 
+- Each theme element can be conceived of as either a line (e.g. x-axis), a rectangle (e.g.
+graph background), or text (e.g. axis title).
+
+### Working with theme
+The code chunk below plot a horizontal bar chart using theme_gray().
+```{r}
+ggplot(data=exam_data, 
+       aes(x=RACE)) + 
+  geom_bar() + 
+  coord_flip() + 
+  theme_gray()
+```
+
+A horizontal bar chart plotted using theme_classic().
+```{r}
+ggplot(data=exam_data, 
+       aes(x=RACE)) + 
+  geom_bar() + 
+  coord_flip() + 
+  theme_classic()
+```
+
+A horizontal bar chart plotted using theme_minimal().
+```{r}
+ggplot(data=exam_data, 
+       aes(x=RACE)) + 
+  geom_bar() + 
+  coord_flip() + 
+  theme_minimal()
+```
+
+Plot a horizontal bar chart looks similar to the figure below.
+- Changing the colors of plot panel background of theme_minimal to lightblue and the color of grid lines to white.
+```{r}
+ggplot(data=exam_data, aes(x=RACE)) + 
+  geom_bar() + 
+  coord_flip() + 
+  theme_minimal() + 
+  theme(panel.background = element_rect(fill = "lightblue", 
+                                        colour = "lightblue", 
+                                        size = 0.5, 
+                                        linetype = "solid"), 
+        panel.grid.major = element_line(size = 0.5, 
+                                        linetype = 'solid', 
+                                        colour = "white"), 
+        panel.grid.minor = element_line(size = 0.25, 
+                                        linetype = 'solid', 
+                                        colour = "white"))
+```
+
+## Designing Data-drive Graphics for Analysis I
+
+### The original design 
+
+A simple vertical bar chart for frequency analysis.
+Critics: 
+
+- y-aixs label is not clear (i.e. count) 
+- To support effective comparison, the bars should be sorted by their resepctive frequencies. 
+- For static graph, frequency values should be added to provide addition information.
+
+![image](https://user-images.githubusercontent.com/44923423/164961635-e2ce7b78-fa38-4c30-8555-aad77dc927be.png)
+
+### The makeover design
+The code chunk.
+
+```{r}
+ggplot(data=exam_data, 
+       aes(x=reorder(RACE,RACE, function(x)-length(x))))+ 
+  geom_bar() + 
+  ylim(0,220) + 
+  geom_text(stat="count", 
+            aes(label=paste0(..count.., ", ", 
+                             round(..count../sum(..count..)*100, 1), "%")), 
+            vjust=-1) + 
+  xlab("Race") + 
+  ylab("No. of\nPupils") + 
+  theme(axis.title.y=element_text(angle = 0))
+```
+
+This code chunk uses fct_infreq() of forcats package.
+```{r}
+exam_data %>% 
+  mutate(RACE = fct_infreq(RACE)) %>% 
+  ggplot(aes(x = RACE)) + 
+  geom_bar()+ ylim(0,220) + 
+  geom_text(stat="count", 
+            aes(label=paste0(..count.., ", ", 
+                             round(..count../sum(..count..)*100, 1), "%")), 
+            vjust=-1) + 
+  xlab("Race") + 
+  ylab("No. of\nPupils") + 
+  theme(axis.title.y=element_text(angle = 0))
+```
+
+## Designing Data-drive Graphics for Analysis II
+
+### The original design
+
+![image](https://user-images.githubusercontent.com/44923423/164964140-95d04f1c-45ac-49a1-b279-837e33975cb5.png)
+
+### The makeover design
+
+- Adding mean and median lines on the histogram plot.
+- Change fill color and line color
+
+The code chunk
+```{r}
+ggplot(data=exam_data, 
+       aes(x= MATHS)) + 
+  geom_histogram(bins=20, 
+                 color="black", 
+                 fill="light blue") + 
+  geom_vline(aes(xintercept=mean(MATHS, na.rm=T)), 
+             color="red", 
+             linetype="dashed", 
+             size=1) + 
+  geom_vline(aes(xintercept=median(MATHS, na.rm=T)), 
+             color="grey30", 
+             linetype="dashed", 
+             size=1)
+```
+
+### Designing Data-drive Graphics for Analysis III
+The histograms are elegantly designed but not informative. This is because they only reveal the distribution of English scores by gender but without context such as all pupils.
+
+![image](https://user-images.githubusercontent.com/44923423/164964579-0b9694d0-82eb-42bb-8e0b-3ae77c99e946.png)
+
+The makeover histograms are not only elegantly designed but also informative. This is because they reveal the distribution of English scores by gender with reference to all pupils.
+
+The code chunk below is used to create the makeover design on the right. Note that the second line is used to create the so called Background Data - full without the 3th column (GENDER).
+```{r}
+d <- exam_data 
+d_bg <- d[, -3] 
+ggplot(d, aes(x = ENGLISH, 
+              fill = GENDER)) + 
+  geom_histogram(data = d_bg, 
+                 fill = "grey", 
+                 alpha = .5) + 
+  geom_histogram(colour = "black") + 
+  facet_wrap(~ GENDER) + 
+  guides(fill = FALSE) + 
+  theme_bw()
+```
+
+## Designing Data-drive Graphics for Analysis IV
+### The orginal design
+
+![image](https://user-images.githubusercontent.com/44923423/164964674-90e02d81-5d80-4778-86ee-050cbfdc661f.png)
+
+The code chunk used to create the makeover.
+```{r}
+ggplot(data=exam_data, 
+       aes(x=MATHS, y=ENGLISH)) + 
+  geom_point() + 
+  coord_cartesian(xlim=c(0,100), 
+                  ylim=c(0,100)) + 
+  geom_hline(yintercept=50, 
+             linetype="dashed", 
+             color="grey60", 
+             size=1) + 
+  geom_vline(xintercept=50, 
+             linetype="dashed", 
+             color="grey60", 
+             size=1)
+```
+
+### Beyond Basic Statistical Graphic
+#### Split violin plots
+```{r}
+devtools::install_github("psyteachr/introdataviz")
+ggplot(exam_data, 
+       aes(x = RACE, 
+           y = MATHS, 
+           fill = GENDER)) + 
+  introdataviz::geom_split_violin(alpha = .4, 
+                                  trim = FALSE) + 
+  geom_boxplot(width = .2, 
+               alpha = .6, 
+               fatten = NULL, 
+               show.legend = FALSE) + 
+  stat_summary(fun.data = "mean_se", 
+               geom = "pointrange", 
+               show.legend = F, 
+               position = position_dodge(.175)) + 
+  scale_y_continuous(breaks = seq(0, 100, 20), 
+                      limits = c(0, 100)) + 
+  scale_fill_brewer(palette = "Dark2", 
+                    name = "Language group")
+```
+
+#### rainclound plots
+This hands-on exercise introduces ggdist package. You will learn how to create raincloud plots as shown on Slide 23 of Lesson 1. 
+- First, stat_halfeye() of ggdist package is used to create a half violin plot on the right of the vertical axis.
+```{r}
+ggplot(exam_data, 
+       aes(x = RACE, 
+           y = MATHS)) + 
+  scale_y_continuous(breaks = seq(0, 100, 20), 
+                     limits = c(0, 100)) + 
+  stat_halfeye(adjust = .33, 
+               width = .67, 
+               color = NA, 
+               justification = -0.01, 
+               position = position_nudge( x = .15) )
+```
+
+- Next, stat_dots() of ggdist package is used to create the dot plots on the left.
+```{r}
+ggplot(exam_data, 
+       aes(x = RACE, 
+           y = MATHS)) + 
+  scale_y_continuous(breaks = seq(0, 100, 20), 
+                     limits = c(0, 100)) + 
+  stat_halfeye(adjust = .33, 
+               width = .67, 
+               color = NA, 
+               justification = -.01, 
+               position = position_nudge( x = .15) ) + 
+  stat_dots(side = "left", 
+            justification = 1.1, 
+            binwidth = .25, 
+            dotsize = 5)
+```
+
+- Lastly, **coord_flip()** of ggplot2 is used to rotate the vertical raincloud plots into horizontal raincloud plots.
+```{r}
+ggplot(exam_data, 
+       aes(x = RACE, y = MATHS)) + 
+  scale_y_continuous(breaks = seq(0, 100, 20), 
+                     limits = c(0, 100)) + 
+  stat_halfeye(adjust = .33, 
+               width = .67, 
+               color = NA, 
+               justification = -.01, 
+               position = position_nudge( x = .15) ) + 
+  stat_dots(side = "left", 
+            justification = 1.1, 
+            binwidth = .25, 
+            dotsize = 5) + 
+  coord_flip()
+```
+
+In this alternative design, boxplots are added by using geom_boxplot() of ggplot2.
+```{r}
+ggplot(exam_data, 
+       aes(x = RACE, 
+           y = MATHS)) + 
+  scale_y_continuous(breaks = seq(0, 100, 20), 
+                     limits = c(0, 100)) + 
+  stat_halfeye(adjust = .33, 
+               width = .67, 
+               color = NA, 
+               justification = -.01, 
+               position = position_nudge( x = .15) ) + 
+  geom_boxplot( width = .25, 
+                outlier.shape = NA ) + 
+  stat_dots(side = "left", 
+            justification = 1.2, 
+            binwidth = .25, 
+            dotsize = 5) + 
+  coord_flip()
+```
+
+### ridge plot
+This hands-on exercise introduces ggridge, an ggplot2 extension specially designed to create ridge plot. ggridges package provides two main geoms, namely:
+
+geom_ridgeline and geom_density_ridges. The former takes height values directly to draw ridgelines, and the latter first estimates data densities and then draws those using ridgelines.
+
+The code chunk below uses
+geom_density_ridges() to create a basic ridge density plot.
+
+```{r}
+library(ggridges)
+ggplot(exam_data, 
+       aes(x = MATHS, 
+           y = CLASS)) + 
+  geom_density_ridges()
+```
+
+- Trailing tails can be cut off using the
+rel_min_height aesthetic. This aesthetic sets a percent cutoff relative to the highest point of any of the density curves. A value of 0.01 usually works well, but you may have to modify this parameter for different datasets.
+
+```{r}
+library(ggridges)
+ggplot(exam_data, 
+       aes(x = MATHS, 
+           y = CLASS)) + 
+  geom_density_ridges(rel_min_height = 0.01)
+```
+
+- The scale parameter control the extent to which the different densities overlap. A setting of
+scale=1 for example, means the tallest density curve just touches the baseline of the next higher one. Smaller values create a separation between the curves, and larger values create more overlap.
+```{r}
+library(ggridges)
+ggplot(exam_data, 
+       aes(x = MATHS, 
+           y = CLASS)) + 
+  geom_density_ridges(rel_min_height = 0.01)
+```
+
+- The **scale** parameter control the extent to which the different densities overlap. A setting of
+scale=1 for example, means the tallest density curve just touches the baseline of the next higher one. Smaller values create a separation between the curves, and larger values create more overlap.
+```{r}
+library(ggridges)
+ggplot(exam_data, 
+       aes(x = MATHS, 
+           y = CLASS)) + 
+  geom_density_ridges(rel_min_height = 0.01, 
+                      scale = 1)
+```
+
+- ggridges package provides a stat
+stat_density_ridges that replaces stat_density in the context of ridgeline plots.
+
+In the code chunk below, stat_density_ridges() is used to create probability ridge plot.
+```{r}
+ggplot(exam_data, 
+       aes(x = MATHS, y = CLASS,
+           fill = 0.5 - abs(0.5 - stat(ecdf)))) +
+  stat_density_ridges(
+    geom = "density_ridges_gradient",
+    calc_ecdf = TRUE,
+    rel_min_height = 0.001) +                      
+  scale_fill_viridis_c(name = "Tail probability",
+                       direction = -1)
+
+```
