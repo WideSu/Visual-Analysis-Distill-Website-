@@ -30,7 +30,7 @@ for(p in packages){
 }
 ```
 
-# Read-in data
+# 2.0 Read-in data
 
 Firstly, we need to import our dataset. The source file is in csv format, and consists of . Hence, read_csv() of the readr package is used to import the data.It has 7 attributes.
 
@@ -49,8 +49,24 @@ participants_data <- read_csv("./data/Participants.csv")
 str(participants_data)
 ```
 
-# Joviality vs educationLevel
-As the educationLevel goes up from highSchoolOrCollege to graduate, people are generally happier at the start of the study.
+# 3.0 Data Visualization
+
+## 3.1 How people react to this study from different background?
+**I am curious about people's attitude to this study with different background**. I will explore the factors that may relate to the **joviality** of participants at the start of study. We assume that there are some factors that relate with joviality, which are listed below.
+
+- educationLevel
+- age
+- kids
+- householdSize
+
+To summarize, people with larger householdSize, with kids, younger, and with higher educationLevel tend to be happier at the start of the study.
+
+### 3.1.1 Joviality for the study vs educationLevel
+Firstly, let's check the distribution of joviality for the study in different education level.
+
+- Graduate students have a diverse level of joviality to the study. But the **mean of joviality** is the **highest**, which means they support the study most.
+- There are **more** people **don't support**(joviality<0.5) the study so much with **Bachlor** and **Low** degrees.
+- People with **HighSchoolCollege** degree tend to be **neutral** about the study.
 ```{r}
 participants_data$educationLevel <-factor(participants_data$educationLevel,ordered=TRUE,levels=c('Low','HighSchoolOrCollege',"Bachelors","Graduate"))
 agg_happy <- participants_data %>% 
@@ -61,7 +77,7 @@ agg_happy <- participants_data %>%
 happy_sorted <- agg_happy %>%
   arrange(desc(educationLevel))
 
-p2=ggplot(participants_data, aes(x = joviality, y = educationLevel, fill = educationLevel)) +
+ggplot(participants_data, aes(x = joviality, y = educationLevel, fill = educationLevel)) +
   geom_density_ridges(geom = "density_ridges_gradient", 
                       calc_ecdf = TRUE,
                       quantiles = 4, 
@@ -69,35 +85,124 @@ p2=ggplot(participants_data, aes(x = joviality, y = educationLevel, fill = educa
                       alpha = .2) +
   theme_ridges() + 
   scale_fill_viridis_d(name = "Quartiles")+
-  ggtitle("Distribution of joviality \n in different Education Level")+
+  ggtitle("Distribution of joviality in different Education Level")+
   theme(plot.title = element_text(size = 12))
-p1=ggplot(data=happy_sorted,
+```
+
+As the **educationLevel goes up** from highSchoolOrCollege to graduate, people are **generally happier** at the start of the study.
+```{r}
+ggplot(data=happy_sorted,
       aes(y = joviality,
       x= educationLevel,
       group=1)) +
   geom_line(linetype = "dashed",color='black',arrow = arrow(type = "closed"))+
   geom_point(stat = "identity",
              position = "identity")+
-  ggtitle("Change of average joviality \n when Education Level increase")+
-  annotate("text", x = 4, y = 1, label = "People tend\n to be happier to study with higher education level \n at the start of the study",size=3,color='#4682B4') + 
+  ggtitle("Change of average joviality when Education Level increase")+
+  annotate("text", 
+           x = 4, 
+           y = 0.5, 
+           label = "People tend \n to be happier\n at the start of study with\n higher education level",size=3,color='#4682B4') + 
   theme(plot.title = element_text(size = 12))
-library(patchwork)
-p1/ p2 + plot_layout(guides='collect') & 
-  theme(legend.position='top') &
-  scale_fill_brewer(palette='Dark2')
 ```
 
+### 3.1.2 Young people tend to be happier at the start of study than old people.
+
+I divide people into 'Young' and 'Old' by 30 yrs old, and check their attitude for the study.
+
+I find that:
+
+- Most **young** people are **happy** at the start of study
+- Most **old** people are **not happy** at the start of the study
+- Young people are happier at the start of the study
+
+```{r}
+participants_data$age_state = ifelse(
+    test = participants_data$age > 30,
+    yes = "Old",
+    no = "Young"
+)
+# Make it a factor
+participants_data$age_state = factor(
+    participants_data$age_state,
+    levels = c("Old", "Young")
+)
+p1 = ggplot(data=subset(participants_data,age_state=='Young'), 
+       aes(x = joviality)) + 
+  geom_density() +
+  ggtitle("Distribution of joviality for young people")+
+  theme(plot.title = element_text(size = 10))
+p2 = ggplot(data=subset(participants_data,age_state=='Old'), 
+       aes(x = joviality)) + 
+  geom_density() +
+  ggtitle("Distribution of joviality for old people")+
+  theme(plot.title = element_text(size = 10))
+p3 = ggplot(data=participants_data,
+aes(x= joviality,
+fill = age_state)) +
+geom_density(alpha=0.2) +
+  annotate("text", x = 0.7, y = 1.2, label = "Young people tend\n to be happier",size=3,color='#4682B4') + 
+  ggtitle("Distribution of joviality in different Age Groups")+
+  theme(plot.title = element_text(size = 10))
+(p1 / p2) | (p3+
+  scale_y_continuous(name="density", limits=c(0.0, 1.2)))
+```
+
+### 3.1.3 People with kids tend to be happier at the start of the study
+
+- Most people who do not have kids tend to not support the study at the start.
+- While people who **have kids** are **more neutral** and **comparably more supported** for the study
+
+```{r}
+ggplot(data=participants_data,
+aes(x= joviality,
+fill = haveKids)) +
+geom_histogram(alpha=0.2) +
+  annotate("text", x = 0.7, y = 20, label = "People with kids tend\n to be happier at the start of the study",size=3,color='red') + 
+  ggtitle("Distribution of joviality with and without kids")+
+  theme(plot.title = element_text(size = 10))
+```
+
+### 3.1.4 People with larger householdSize tend to have higher joviality at the start of the study
+```{r}
+agg_happy <- participants_data %>% 
+  select(c("householdSize","joviality")) %>%
+  group_by(householdSize) %>% 
+  summarise(joviality=mean(joviality))
+
+happy_sorted <- agg_happy %>%
+  arrange(desc(householdSize))
+ggplot(data=happy_sorted,
+aes(y = joviality,
+x= householdSize)) +
+geom_line(linetype = "dashed",color='black',arrow = arrow(type = "closed"))+
+  geom_point(stat = "identity",
+             position = "identity")+
+  ggtitle("Change of average joviality when householdSize increase")+
+  annotate("text", 
+           x = 2.5, 
+           y = 0.495, 
+           label = "People tend \n to be happier\n at the start of study with\n larger householdSize",size=3,color='#4682B4') + 
+  theme(plot.title = element_text(size = 12))
+```
+
+## 3.2 The backgroud of the participants
+
+### 3.2.1 Are people with kids older?
+It's strange that in our study, people with kids are generally younger
 ```{r}
 table=table
 ggplot(data=participants_data, 
        aes(y = age, x= haveKids)) + 
-  geom_boxplot() + 
+  geom_boxplot(notch=TRUE) + 
   geom_point(stat="summary", 
              fun.y="mean", 
              colour ="red", 
-             size=4)
+             size=4)+
+  ggtitle("Age distribution for people with and without kids")
 ```
 
+For graduate students, those who has kids are younger than their fellows.
 ```{r}
 devtools::install_github("psyteachr/introdataviz")
 ggplot(participants_data, 
@@ -117,56 +222,16 @@ ggplot(participants_data,
   scale_y_continuous(breaks = seq(0, 100, 20), 
                       limits = c(0, 100)) + 
   scale_fill_brewer(palette = "Dark2", 
-                    name = "Has Child")
+                    name = "Has Child")+
+  ggtitle("Age distribution for people with and without kids in different education")
 
 ```
 
-```{r}
-participants_data$age_state = ifelse(
-    test = participants_data$age > 30,
-    yes = "Old",
-    no = "Young"
-)
-# Make it a factor
-participants_data$age_state = factor(
-    participants_data$age_state,
-    levels = c("Old", "Young")
-)
-```
 
-# Young people tend to be happier than old people.
-```{r}
-p1 = ggplot(data=subset(participants_data,age_state=='Young'), 
-       aes(x = joviality)) + 
-  geom_density() +
-  ggtitle("Distribution of joviality for young people")+
-  theme(plot.title = element_text(size = 10))
-p2 = ggplot(data=subset(participants_data,age_state=='Old'), 
-       aes(x = joviality)) + 
-  geom_density() +
-  ggtitle("Distribution of joviality for old people")+
-  theme(plot.title = element_text(size = 10))
-p3 = ggplot(data=participants_data,
-aes(x= joviality,
-fill = age_state)) +
-geom_density(alpha=0.2) +
-  annotate("text", x = 0.3, y = 0.4, label = "Young people tend\n to be happier",size=3,color='#4682B4') + 
-  ggtitle("Distribution of joviality in different Age Groups")+
-  theme(plot.title = element_text(size = 10))
-(p1 / p2) | (p3+
-  scale_y_continuous(name="density", limits=c(0.0, 1.2)))
-```
-
-
+Violin plot for age in different Interest Group.
 ```{r layout="l-body-outset", preview=TRUE}
 ggplot(data=participants_data,
-aes(y = age,
-x= educationLevel)) +
-geom_boxplot()
-```
-Violin plot for 
-```{r layout="l-body-outset", preview=TRUE}
-ggplot(data=participants_data,
-aes(y = age,x= interestGroup)) +geom_violin()+
+aes(y = age)) + geom_boxplot()+
+  facet_grid(~interestGroup)+
 ggtitle("Distribution of Age in different Interest Group")
 ```
