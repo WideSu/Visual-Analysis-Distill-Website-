@@ -5,8 +5,8 @@ author:
   affiliation: "Singapore Management University"
 description: |
   A tutorial of ggplot2 and its extensions using exam dataset.
-site: distill::distill_website
 ---
+
 ```{r, setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE,
                       eval=TRUE,

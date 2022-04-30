@@ -5,6 +5,7 @@ author:
   affiliation: "Singapore Management University"
 description: |
 ---
+
 # The task
 In this take-home exercise 2, we are required to:
 
@@ -61,13 +62,7 @@ grps <- c('20 & Below', '21-25', '26-30', '31-35', '36-40', '41-45',
 # data$Age_Group <- cut(data$Age, breaks=brks, labels = grps)
 ```
 
-```{r age distribution, echo=TRUE}
-p1 <- ggplot(data=data) + aes(x=age) +
-  geom_histogram(bins=20, boundary=60, color="black", fill="grey") +
-  ggtitle("Distribution of Participants' Age")
-```
-
-```{r age distribution, echo=TRUE}
+```{r, echo=TRUE}
 ggplot(data=data, aes(x=age, fill=haveKids)) +
   geom_histogram(bins=100, color='gray30')
 
