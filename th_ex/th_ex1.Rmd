@@ -1,6 +1,11 @@
 ---
 title: "Take-home Excercise 1"
 site: distill::distill_website
+author:
+- name: "Huang Anni"
+  affiliation: "Singapore Management University"
+description: |
+  Take the data from VAST challenge and use the data collected from volunteers to evaluate the city's demographics.
 ---
 # 1.0 Introduction
 
