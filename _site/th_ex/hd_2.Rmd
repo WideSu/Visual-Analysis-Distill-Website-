@@ -5,9 +5,10 @@ author:
   affiliation: "Singapore Management University"
 description: |
   A tutorial of ggplot2 and its extensions using exam dataset.
+output: distill::distill_article
 ---
 
-```{r, setup, include=FALSE}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE,
                       eval=TRUE,
                       warning=FALSE,
