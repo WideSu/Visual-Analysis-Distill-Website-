@@ -4,6 +4,11 @@ author:
 - name: "Huang Anni"
   affiliation: "Singapore Management University"
 description: |
+  Peer study
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
 ---
 
 # The task
@@ -48,8 +53,10 @@ glimpse(data)
 
 The origional Plot:
 - Athetic: 
+- Cleartivity
+
 ```{r age distribution, echo=TRUE}
-p1 <- ggplot(data=data) + aes(x=age) +
+ggplot(data=data) + aes(x=age) +
   geom_histogram(bins=20, boundary=60, color="black", fill="grey") +
   ggtitle("Distribution of Participants' Age")
 ```
