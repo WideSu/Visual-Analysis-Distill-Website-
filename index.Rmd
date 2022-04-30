@@ -19,3 +19,5 @@ Upcoming lectures and assignments: [click here](https://isss608-ay2021-22april.n
 - Week 2 Tableau
   - [In-class excercise 2](https://public.tableau.com/app/profile/huang.anni/viz/In-class-exc2/Dashboard1?publish=yes)
   - [Hand-out 2](https://huanganni.netlify.app/th_ex/hd_2.html)
+- Week 3 DataPrep & TreeMap
+  - [Hand-out 3](https://huanganni.netlify.app/th_ex/hd_3.html)

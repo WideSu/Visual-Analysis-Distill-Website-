@@ -1,6 +1,11 @@
 ---
 title: "In-class Excercise 1"
 site: distill::distill_website
+author:
+- name: "Huang Anni"
+  affiliation: "Singapore Management University"
+description: |
+  A tutorial of ggplot2, tidyverse and their extensions using exam dataset.
 ---
 ```{r, setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE,

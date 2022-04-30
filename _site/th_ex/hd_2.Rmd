@@ -1,14 +1,8 @@
 ---
 title: "Hand-out 2"
-author:
-- name: "Huang Anni"
-  affiliation: "Singapore Management University"
-description: |
-  A tutorial of ggplot2 and its extensions using exam dataset.
-output: distill::distill_article
+site: distill::distill_website
 ---
-
-```{r setup, include=FALSE}
+```{r, setup, include=FALSE}
 knitr::opts_chunk$set(echo=TRUE,
                       eval=TRUE,
                       warning=FALSE,

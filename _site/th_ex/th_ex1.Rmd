@@ -1,7 +1,16 @@
 ---
 title: "Take-home Excercise 1"
-site: distill::distill_website
+author:
+- name: "Huang Anni"
+  affiliation: "Singapore Management University"
+description: |
+  Take the data from VAST challenge and use the data collected from volunteers to evaluate the city's demographics.
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
 ---
+
 # 1.0 Introduction
 
 This is a visual analysis project which uses the data from [VAST Challenge 2022](https://vast-challenge.github.io/2022/). 
@@ -41,15 +50,17 @@ Firstly, we need to import our dataset. The source file is in csv format, and co
 - educationLevel(stringfactor):the participant’s education level,one of: {"Low","HighSchoolOrCollege","Bachelors","Graduate"}
 - interestGroup(char):a char representing the participant’s stated primary interest
 - joviality(float):a value ranging from[0,1] indicating the participant’s overall happiness level at the start of the study
-```{r layout="l-body-outset", preview=TRUE}
+
+```{r layout="l-body-outset", preview=FALSE}
 # Reading the csv file as a tbl_df
 participants_data <- read_csv("./data/Participants.csv")
 # Inspecting the structure of the dataset
 # str(participants_data)
 str(participants_data)
 ```
-
 # 3.0 Data Visualization
+
+We look at the difference of people's attitude in different background and 
 
 ## 3.1 How people react to this study from different background?
 **I am curious about people's attitude to this study with different background**. I will explore the factors that may relate to the **joviality** of participants at the start of study. We assume that there are some factors that relate with joviality, which are listed below.
@@ -67,7 +78,8 @@ Firstly, let's check the distribution of joviality for the study in different ed
 - Graduate students have a diverse level of joviality to the study. But the **mean of joviality** is the **highest**, which means they support the study most.
 - There are **more** people **don't support**(joviality<0.5) the study so much with **Bachlor** and **Low** degrees.
 - People with **HighSchoolCollege** degree tend to be **neutral** about the study.
-```{r}
+
+```{r layout="l-body-outset", preview=TRUE}
 participants_data$educationLevel <-factor(participants_data$educationLevel,ordered=TRUE,levels=c('Low','HighSchoolOrCollege',"Bachelors","Graduate"))
 agg_happy <- participants_data %>% 
   select(c("educationLevel","joviality")) %>%
@@ -90,7 +102,8 @@ ggplot(participants_data, aes(x = joviality, y = educationLevel, fill = educatio
 ```
 
 As the **educationLevel goes up** from highSchoolOrCollege to graduate, people are **generally happier** at the start of the study.
-```{r}
+
+```{r layout="l-body-outset", preview=TRUE}
 ggplot(data=happy_sorted,
       aes(y = joviality,
       x= educationLevel,
@@ -164,6 +177,7 @@ geom_histogram(alpha=0.2) +
 ```
 
 ### 3.1.4 People with larger householdSize tend to have higher joviality at the start of the study
+
 ```{r}
 agg_happy <- participants_data %>% 
   select(c("householdSize","joviality")) %>%
@@ -189,7 +203,9 @@ geom_line(linetype = "dashed",color='black',arrow = arrow(type = "closed"))+
 ## 3.2 The backgroud of the participants
 
 ### 3.2.1 Are people with kids older?
+
 It's strange that in our study, people with kids are generally younger
+
 ```{r}
 table=table
 ggplot(data=participants_data, 
@@ -203,6 +219,7 @@ ggplot(data=participants_data,
 ```
 
 For graduate students, those who has kids are younger than their fellows.
+
 ```{r}
 devtools::install_github("psyteachr/introdataviz")
 ggplot(participants_data, 
@@ -227,8 +244,10 @@ ggplot(participants_data,
 
 ```
 
+### 3.2.2 What's the age distribution in different Interest Group?
 
 Violin plot for age in different Interest Group.
+
 ```{r layout="l-body-outset", preview=TRUE}
 ggplot(data=participants_data,
 aes(y = age)) + geom_boxplot()+
