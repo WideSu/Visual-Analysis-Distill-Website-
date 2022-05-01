@@ -22,7 +22,7 @@ navbar:
       - text: "Take-home Excercise1"
         href: th_ex/th_ex1.html
       - text: "Take-home Excercise2"
-        href: "Take-home Excercise2"
+        href: th_ex/th_ex2.html
     - text: "In-class Excercise"
       menu:
       - text: "In-class Excercise1"

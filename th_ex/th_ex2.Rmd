@@ -142,6 +142,7 @@ f1
 ```
 
 # Fig 2 Distribution of age groups for people with and without kids
+
 ```{r echo=TRUE}
 p1 <- ggplot(data=data, aes(x=age, fill=haveKids)) +
   geom_histogram(bins=20, color='gray30')
@@ -192,7 +193,9 @@ p2<-ggplot(data=new_data,
   guides(size='none',color="none")
 p2
 ```
+
 ## 2.2 Before vs after makeover
+
 ```{r echo=TRUE}
 p1 <- ggplot(data=data, aes(x=age, fill=haveKids)) +
   geom_histogram(bins=20, color='gray30')
@@ -230,8 +233,9 @@ f2
 ## 3.1 Critics
 
 ```{r, echo=TRUE}
-ggplot(data=data, aes(x=age, fill=educationLevel)) +
+p1 <- ggplot(data=data, aes(x=age, fill=educationLevel)) +
   geom_histogram(bins=20, color='gray30')
+p1
 ```
 
 ### 3.1.1 Athetic: 
@@ -242,7 +246,7 @@ This graph is beautiful for its color and clear legend.
 
 But it's not easy to get information in this graph. We can make it more informative by using scatter plot whose x is different age groups and its y is ratio of each education level.
 
-- 1. **Grouped** people **into 6 age groups** from below 20 to above 60 with a gap of 10 years.
+- 1. **Cut** people **into 6 age groups** from below 20 to above 60 with a gap of 10 years.
 - 2. Used **`groupby`** and **`prop.table`** to compute the ratio of each education level in each age groups.
 - 3. Used the **size** of circle to show the size of **proportion**.
 - 4. Used the **color** of circle to differentiate **education levels**.
@@ -258,9 +262,7 @@ new_data <- data %>%
   group_by(Age_Group) %>%          # now required with changes to dplyr::count()
   mutate(prop = prop.table(n))
 new_data
-```
 
-```{r}
 p2<-ggplot(data=new_data,
            aes(x = Age_Group, 
                y=prop, 
@@ -298,27 +300,139 @@ After
 p2
 ```
 
+# Fig 4 Distribution of age with different education level
+
 ```{r}
 d <- data
 d_bg <- d[, -5]
-ggplot(d, aes(x = age, fill = educationLevel)) + 
+p1 <- ggplot(d, aes(x = age, fill = educationLevel)) + 
   geom_histogram(data=d_bg, fill="grey", alpha=.5) +
   geom_histogram(colour="black") + 
   facet_wrap(~ educationLevel) + 
   guides(fill = "none") + 
   theme_bw()
+p1
 ```
 
-To see more about joviality:
+## 4.1 Critics
+
+### 4.1.1 Athetic: 
+
+This graph is beautiful for its color and clear legend.
+
+### 4.1.2 Clarity:
+
+But it's not easy to get information in this graph. We can make it more informative by using scatter plot whose x is different age groups and its y is ratio of each education level.
+
+- 1. **Cut** people **into 6 age groups** from below 20 to above 60 with a gap of 10 years.
+- 2. **Highlighted** the majority of people who between 20 and 60 years old.
+- 3. Used **facet_wrap** to show the age distribution of each education level.
+- 4. Used the **color** of circle to differentiate **education levels**.
+- 5. Changed y label into **Ratio**.
+- 6. Added **title and subtitle** to include our insights of the graph to make it more informative.
+
+After make over:
+
+```{r}
+brks <- c(17, 20, 30, 40, 50, 60, Inf)
+grps <- c('<=20', '21-30', '31-40', '41-50', '51-60', '>60')
+data$Age_Group <- cut(data$age, breaks=brks, labels = grps, right = FALSE)
+p2 <- ggplot(data = data, 
+       aes(x = Age_Group, fill=educationLevel)) +
+  geom_bar() +
+  ylim(0, 200) +
+  geom_text(stat = 'count',
+           aes(label= paste0(stat(count), ' (', 
+                             round(stat(count)/sum(stat(count))*100, 
+                             1), '%)')), vjust= -1, size= 1.5, angle=0) +
+  gghighlight(Age_Group != "<=20" & Age_Group != ">60")+
+  labs(y= 'No. of\nResidents', x= 'Age Group',
+       title = "Fig 4. Distribution of Residents' Age",
+       subtitle = "The distribution of age for people with different education level is similar") +
+  facet_wrap(~ educationLevel) + 
+  theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(),
+        axis.text.x.bottom = element_text(size=5),
+        panel.background= element_blank(), axis.line= element_line(color= 'grey')) +
+  theme_bw()
+p2
+```
+
+## 4.2 Before vs after makeover
+
+```{r}
+f2<- p1/p2 + plot_annotation(tag_levels = list(c('Before', 'After'), '1'))
+f2
+```
+
+# Fig 5 Distribution of joviality with vs without kids
 
 ```{r echo=TRUE}
-ggplot(data=data, aes(x = joviality, colour=haveKids)) + geom_density()
+p1<-ggplot(data=data, aes(x = joviality, colour=haveKids)) + geom_density()
+p1
+```
 
-ggplot(data=data, aes(y = joviality, x= haveKids)) + 
+### 5.1.1 Athetic:
+
+This graph is not very beautiful but it's clear.
+
+### 5.1.2 Clarity:
+
+It lacks title.
+
+- 1. Added **title and subtitle** to include our insights of the graph to make it more informative.
+- 2. **Highlighted** the density line of people who have kids
+
+```{r echo=TRUE}
+p2<-ggplot(data=data, aes(x = joviality, colour=haveKids)) + 
+  geom_density() +
+  labs(y= 'No. of\nResidents', x= 'Age Group',
+       title = "Fig 5. Does people having kids happier?",
+       subtitle = "Yes, people who have kids is happier") +
+  gghighlight(haveKids == TRUE)+
+  theme_bw()
+p2
+```
+
+# Fig 6 Boxplot of joviality with vs without kids
+
+```{r echo=TRUE}
+p1<- ggplot(data=data, aes(y = joviality, x= haveKids)) + 
   geom_violin(fill='light blue') + 
   geom_boxplot(notch=TRUE) +
   stat_summary(geom = "point", fun="mean", colour ="red", size=4)
+p1
+```
 
+### 6.1.1 Athetic:
+
+This graph is beautiful.
+
+### 6.1.2 Clarity:
+
+It lacks title.
+
+- 1. Added **title and subtitle** to include our insights of the graph to make it more informative.
+- 2. **Highlighted** the density line of people who have kids
+
+## 6.2 Before vs after
+```{r echo=TRUE}
+p2<- ggplot(data=data, aes(y = joviality, x= haveKids)) + 
+  geom_violin(fill='light blue') + 
+  geom_boxplot(notch=TRUE) +
+  stat_summary(geom = "point", fun="mean", colour ="red", size=4)+
+  labs(y= 'No. of\nResidents', x= 'Age Group',
+       title = "Fig 5. Does people having kids happier?",
+       subtitle = "Yes, people who have kids is happier") +
+  geom_hline(aes(yintercept = 0.5),
+             linetype= 'dashed',
+             color= '#f08080',
+             size= .6)+
+  gghighlight(haveKids == TRUE)+
+  theme_bw()
+p2
+```
+
+```{r}
 ggplot(data=data, aes(x= joviality)) + geom_histogram(bins=20) + 
   facet_wrap(~ educationLevel)
 
