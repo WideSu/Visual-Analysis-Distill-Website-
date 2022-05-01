@@ -360,8 +360,8 @@ p2
 ## 4.2 Before vs after makeover
 
 ```{r}
-f2<- p1/p2 + plot_annotation(tag_levels = list(c('Before', 'After'), '1'))
-f2
+f4<- p1/p2 + plot_annotation(tag_levels = list(c('Before', 'After'), '1'))
+f4
 ```
 
 # Fig 5 Distribution of joviality with vs without kids
@@ -382,15 +382,41 @@ It lacks title.
 - 1. Added **title and subtitle** to include our insights of the graph to make it more informative.
 - 2. **Highlighted** the density line of people who have kids
 
-```{r echo=TRUE}
-p2<-ggplot(data=data, aes(x = joviality, colour=haveKids)) + 
-  geom_density() +
-  labs(y= 'No. of\nResidents', x= 'Age Group',
-       title = "Fig 5. Does people having kids happier?",
-       subtitle = "Yes, people who have kids is happier") +
-  gghighlight(haveKids == TRUE)+
-  theme_bw()
+```{r}
+new_data <- data %>%
+  group_by(haveKids,householdSize,educationLevel,Age_Group)%>% 
+summarise(
+  joviality_mean = mean(joviality),
+)
+p2<-ggplot(data=new_data,
+           aes(x = Age_Group, 
+               y=joviality_mean, 
+               size=joviality_mean, 
+               color=haveKids)) +
+  geom_point()+
+  facet_grid(vars(householdSize),vars(educationLevel)) +
+  ylim(0, 1) +
+  labs(y= 'Hapiness', x= 'Have or not have kids',
+       title = "Fig 5. Does the ratio of education Level differ in different age groups?",
+       subtitle = "Different age group has similar education backgroud") +
+  geom_text(aes(label= paste0(haveKids, '(', round(joviality_mean,2)*100,'%)')), 
+            vjust= -2, 
+            size= 1,
+            angle=0) +
+  theme(axis.title.y= element_text(angle=0), 
+        axis.ticks.x= element_blank(),
+        panel.background= element_blank(), 
+        axis.line= element_line(color= 'grey'),
+        legend.position="top")+
+  guides(size="none")
 p2
+```
+
+## 5.2 Before vs after
+
+```{r}
+f5 <- p1/p2 + plot_annotation(tag_levels = list(c('Before', 'After'), '1'))
+f5
 ```
 
 # Fig 6 Boxplot of joviality with vs without kids
@@ -412,15 +438,16 @@ This graph is beautiful.
 It lacks title.
 
 - 1. Added **title and subtitle** to include our insights of the graph to make it more informative.
-- 2. **Highlighted** the density line of people who have kids
+- 2. **Highlighted** the boxplot of people who have kids.
+- 3. **Added** hline to better compare that people who have kids is happier.
 
-## 6.2 Before vs after
 ```{r echo=TRUE}
+
 p2<- ggplot(data=data, aes(y = joviality, x= haveKids)) + 
   geom_violin(fill='light blue') + 
   geom_boxplot(notch=TRUE) +
   stat_summary(geom = "point", fun="mean", colour ="red", size=4)+
-  labs(y= 'No. of\nResidents', x= 'Age Group',
+  labs(y= 'No. of\nResidents', x= 'Joviality',
        title = "Fig 5. Does people having kids happier?",
        subtitle = "Yes, people who have kids is happier") +
   geom_hline(aes(yintercept = 0.5),
@@ -431,6 +458,29 @@ p2<- ggplot(data=data, aes(y = joviality, x= haveKids)) +
   theme_bw()
 p2
 ```
+
+## 6.2 Before vs after
+
+```{r}
+f6<- p1/p2 + plot_annotation(tag_levels = list(c('Before', 'After'), '1'))
+f6
+```
+
+# Fig 7 Distribution of joviality with different education level
+
+## 7.1 Critics
+
+### 7.1.1 Athetic:
+
+- 1. We can make it more beautiful by adding color for each education level.
+
+### 7.1.2 Clarity:
+
+It lacks title.
+
+- 1. Added **title and subtitle** to include our insights of the graph to make it more informative.
+- 2. **Highlighted** the boxplot of people who have kids.
+- 3. **Added** hline to better compare that people who have kids is happier.
 
 ```{r}
 ggplot(data=data, aes(x= joviality)) + geom_histogram(bins=20) + 
@@ -456,7 +506,36 @@ Now, we can just find out the counts of householdSize types:
 ggplot(data=data, aes(x=householdSize)) + geom_bar() + coord_flip()
 ```
 
-
+```{r}
+brks <- c(17, 20, 25, 30, 35, 40, 45, 50, 55, 60, Inf)
+grps <- c('<=20', '21-25','26-30','31-35', '36-40', '41-45', '46-50', '51-55','56-60', '>60')
+data$Age_Group <- cut(data$age, breaks=brks, labels = grps, right = FALSE)
+new_data <- data %>%
+  count(Age_Group, haveKids) %>%
+  group_by(Age_Group) %>%          # now required with changes to dplyr::count()
+  mutate(prop = prop.table(n)) %>% 
+  filter(haveKids == TRUE)
+p2<-ggplot(data=new_data,
+           aes(x = Age_Group, 
+               y=prop, 
+               size=prop, 
+               color=prop)) +
+  geom_point()+
+  ylim(0, 0.45) +
+  labs(y= 'Ratio\n of residences\n having kids', x= 'Age Group',
+       title = "Fig 2. Does of ratio of having kids differ in different age groups?",
+       subtitle = "The proportion of residences having kids is smaller in elder age groups.\n The ratio of having kids in each age group is around 0.2-0.4") +
+  geom_text(aes(label= paste0(Age_Group, '(', round(prop,2)*100,'%)')), 
+            vjust= -1.5, 
+            size= 2.5,
+            angle=15) +
+  theme(axis.title.y= element_text(angle=0), 
+        axis.ticks.x= element_blank(),
+        panel.background= element_blank(), 
+        axis.line= element_line(color= 'grey'))+
+  guides(size='none',color="none")
+p2
+```
 
 
 
