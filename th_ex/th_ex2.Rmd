@@ -47,6 +47,7 @@ library(tidyverse)
 library(ggplot2)
 data <- read_csv('./data/Participants.csv')
 data$educationLevel <-factor(data$educationLevel,ordered=TRUE,levels=c('Low','HighSchoolOrCollege',"Bachelors","Graduate"))
+data$householdSize<-factor(data$householdSize,ordered=TRUE,levels=c(1,2,3))
 glimpse(data)
 ```
 
@@ -73,7 +74,7 @@ p2 <- ggplot(data = data,
        aes(x = age)) +
   ggtitle("Distribution of Participants' Age")+
   geom_bar(bins=20, boundary = 60, fill="light blue") +
-  theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(),
+  theme(axis.title.y= element_text(angle=90), axis.ticks.x= element_blank(),
         panel.background= element_blank(), axis.line= element_line(color= 'grey'))
 p2
 ```
@@ -106,7 +107,7 @@ p2 <- ggplot(data = data,
   labs(y= 'No. of\nResidents', x= 'Age Group',
        title = "Fig 1. Distribution of Residents' Age",
        subtitle = "Most of residents are in working age(20-60)") +
-  theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(),
+  theme(axis.title.y= element_text(angle=90), axis.ticks.x= element_blank(),
         panel.background= element_blank(), axis.line= element_line(color= 'grey'))
 p2
 ```
@@ -134,7 +135,7 @@ p2 <- ggplot(data = data,
   labs(y= 'No. of\nResidents', x= 'Age Group',
        title = "Fig 1. Distribution of Residents' Age",
        subtitle = "Most of residents are in working age(20-60)") +
-  theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(),
+  theme(axis.title.y= element_text(angle=90), axis.ticks.x= element_blank(),
         panel.background= element_blank(), axis.line= element_line(color= 'grey'))
 # group them together using patchwork
 f1<- p1/p2 + plot_annotation(tag_levels = list(c('Before', 'After'), '1'))
@@ -186,7 +187,7 @@ p2<-ggplot(data=new_data,
             vjust= -1.5, 
             size= 2.5,
             angle=15) +
-  theme(axis.title.y= element_text(angle=0), 
+  theme(axis.title.y= element_text(angle=90), 
         axis.ticks.x= element_blank(),
         panel.background= element_blank(), 
         axis.line= element_line(color= 'grey'))+
@@ -220,7 +221,7 @@ p2<-ggplot(data=new_data,
             vjust= -3, 
             size= 1.5,
             angle=30) +
-  theme(axis.title.y= element_text(angle=0), 
+  theme(axis.title.y= element_text(angle=90), 
         axis.ticks.x= element_blank(),
         panel.background= element_blank(), 
         axis.line= element_line(color= 'grey'))+
@@ -278,12 +279,12 @@ p2<-ggplot(data=new_data,
             vjust= -2, 
             size= 2,
             angle=15) +
-  theme(axis.title.y= element_text(angle=0), 
+  theme(axis.title.y= element_text(angle=90), 
         axis.ticks.x= element_blank(),
         panel.background= element_blank(), 
         axis.line= element_line(color= 'grey'),
         legend.position="top")+
-  guides(size="none")
+  guides(size="none",color="none")
 p2
 ```
 
@@ -298,6 +299,7 @@ After
 
 ```{r echo=FALSE}
 p2
+f3 <- p1/p2 + plot_annotation(tag_levels = list(c('Before', 'After'), '1'))
 ```
 
 # Fig 4 Distribution of age with different education level
@@ -359,12 +361,22 @@ p2
 
 ## 4.2 Before vs after makeover
 
-```{r}
-f4<- p1/p2 + plot_annotation(tag_levels = list(c('Before', 'After'), '1'))
-f4
+Before
+
+```{r echo=FALSE}
+p1
+```
+
+After
+
+```{r echo=FALSE}
+p2
+f4 <- p1/p2 + plot_annotation(tag_levels = list(c('Before', 'After'), '1'))
 ```
 
 # Fig 5 Distribution of joviality with vs without kids
+
+## 5.1 Critics
 
 ```{r echo=TRUE}
 p1<-ggplot(data=data, aes(x = joviality, colour=haveKids)) + geom_density()
@@ -379,31 +391,31 @@ This graph is not very beautiful but it's clear.
 
 It lacks title.
 
-- 1. Added **title and subtitle** to include our insights of the graph to make it more informative.
-- 2. **Highlighted** the density line of people who have kids
+- 1. Used **group_by** and **summarise** to compute the mean of joviality for people with and without kids. 
+- 2. Added **title and subtitle** to include our insights of the graph to make it more informative.
 
 ```{r}
+
 new_data <- data %>%
-  group_by(haveKids,householdSize,educationLevel,Age_Group)%>% 
+  group_by(haveKids, householdSize)%>% 
 summarise(
   joviality_mean = mean(joviality),
 )
 p2<-ggplot(data=new_data,
-           aes(x = Age_Group, 
+           aes(x = householdSize, 
                y=joviality_mean, 
                size=joviality_mean, 
                color=haveKids)) +
   geom_point()+
-  facet_grid(vars(householdSize),vars(educationLevel)) +
   ylim(0, 1) +
-  labs(y= 'Hapiness', x= 'Have or not have kids',
-       title = "Fig 5. Does the ratio of education Level differ in different age groups?",
-       subtitle = "Different age group has similar education backgroud") +
-  geom_text(aes(label= paste0(haveKids, '(', round(joviality_mean,2)*100,'%)')), 
-            vjust= -2, 
-            size= 1,
+  labs(y= 'Hapiness', x= 'Household size',
+       title = "Fig 5. Does happiness differ for people have vs not have kids?",
+       subtitle = "People with kids is slightly happier than those who do not.\n But for people with a house hold of 2 and 3, \n there's no difference in joviality whether they have kids.") +
+  geom_text(aes(label= paste0("Household size=",householdSize, '\nHappiness=', round(joviality_mean,2)*100,'%')), 
+            vjust= -1, 
+            size= 4,
             angle=0) +
-  theme(axis.title.y= element_text(angle=0), 
+  theme(axis.title.y= element_text(angle=90), 
         axis.ticks.x= element_blank(),
         panel.background= element_blank(), 
         axis.line= element_line(color= 'grey'),
@@ -414,12 +426,22 @@ p2
 
 ## 5.2 Before vs after
 
-```{r}
+Before
+
+```{r echo=FALSE}
+p1
+```
+
+After
+
+```{r echo=FALSE}
+p2
 f5 <- p1/p2 + plot_annotation(tag_levels = list(c('Before', 'After'), '1'))
-f5
 ```
 
 # Fig 6 Boxplot of joviality with vs without kids
+
+## 6.1 Critics
 
 ```{r echo=TRUE}
 p1<- ggplot(data=data, aes(y = joviality, x= haveKids)) + 
@@ -447,8 +469,8 @@ p2<- ggplot(data=data, aes(y = joviality, x= haveKids)) +
   geom_violin(fill='light blue') + 
   geom_boxplot(notch=TRUE) +
   stat_summary(geom = "point", fun="mean", colour ="red", size=4)+
-  labs(y= 'No. of\nResidents', x= 'Joviality',
-       title = "Fig 5. Does people having kids happier?",
+  labs(y= 'Joviality', x= 'Have Kids',
+       title = "Fig 6. Does having kids change happiness?",
        subtitle = "Yes, people who have kids is happier") +
   geom_hline(aes(yintercept = 0.5),
              linetype= 'dashed',
@@ -468,6 +490,12 @@ f6
 
 # Fig 7 Distribution of joviality with different education level
 
+```{r}
+p1<-ggplot(data=data, aes(x= joviality)) + geom_histogram(bins=20) + 
+  facet_wrap(~ educationLevel)
+p1
+```
+
 ## 7.1 Critics
 
 ### 7.1.1 Athetic:
@@ -478,64 +506,221 @@ f6
 
 It lacks title.
 
-- 1. Added **title and subtitle** to include our insights of the graph to make it more informative.
-- 2. **Highlighted** the boxplot of people who have kids.
-- 3. **Added** hline to better compare that people who have kids is happier.
+- 1. Used **group_by** and **summarise** to compute the mean of joviality for different education levels. 
+- 2. Added **title and subtitle** to include our insights of the graph to make it more informative.
 
 ```{r}
-ggplot(data=data, aes(x= joviality)) + geom_histogram(bins=20) + 
-  facet_wrap(~ educationLevel)
-
-ggplot(data=data, aes(y = joviality, x= interestGroup)) + geom_boxplot() +
-  facet_grid(educationLevel ~.)
-
-dpp <- data %>%
-  group_by(age) %>%
-  summarise(joviality = mean(joviality))
-ggplot(data=dpp, aes(x=age, y=joviality)) + geom_point() +
-  coord_cartesian(xlim=c(20, 60), ylim=c(0, 1)) + 
-  geom_hline(yintercept=0.5, linetype="dashed", color="grey60", size=1) +  
-  geom_vline(xintercept=40, linetype="dashed", color="grey60", size=1)
-```
-
-
-Now, we can just find out the counts of householdSize types:
-
-
-```{r}
-ggplot(data=data, aes(x=householdSize)) + geom_bar() + coord_flip()
-```
-
-```{r}
-brks <- c(17, 20, 25, 30, 35, 40, 45, 50, 55, 60, Inf)
-grps <- c('<=20', '21-25','26-30','31-35', '36-40', '41-45', '46-50', '51-55','56-60', '>60')
-data$Age_Group <- cut(data$age, breaks=brks, labels = grps, right = FALSE)
 new_data <- data %>%
-  count(Age_Group, haveKids) %>%
-  group_by(Age_Group) %>%          # now required with changes to dplyr::count()
-  mutate(prop = prop.table(n)) %>% 
-  filter(haveKids == TRUE)
+  group_by(educationLevel)%>% 
+summarise(
+  joviality_mean = mean(joviality),
+)
 p2<-ggplot(data=new_data,
-           aes(x = Age_Group, 
-               y=prop, 
-               size=prop, 
-               color=prop)) +
+           aes(x = educationLevel, 
+               y=joviality_mean, 
+               size=joviality_mean, 
+               color=educationLevel)) +
   geom_point()+
-  ylim(0, 0.45) +
-  labs(y= 'Ratio\n of residences\n having kids', x= 'Age Group',
-       title = "Fig 2. Does of ratio of having kids differ in different age groups?",
-       subtitle = "The proportion of residences having kids is smaller in elder age groups.\n The ratio of having kids in each age group is around 0.2-0.4") +
-  geom_text(aes(label= paste0(Age_Group, '(', round(prop,2)*100,'%)')), 
-            vjust= -1.5, 
-            size= 2.5,
-            angle=15) +
-  theme(axis.title.y= element_text(angle=0), 
+  ylim(0, 1) +
+  labs(y= 'Hapiness', x= 'Education Level',
+       title = "Fig 7. Does happiness differ with different education levels?",
+       subtitle = "People is happier with higher education level") +
+  geom_text(aes(label= paste0(round(joviality_mean,2)*100,'%')), 
+            vjust= -1, 
+            size= 4,
+            angle=0) +
+  theme(axis.title.y= element_text(angle=90), 
         axis.ticks.x= element_blank(),
         panel.background= element_blank(), 
-        axis.line= element_line(color= 'grey'))+
-  guides(size='none',color="none")
+        axis.line= element_line(color= 'grey'),
+        legend.position="top")+
+  guides(size="none",color="none")
 p2
 ```
 
+## 7.2 Before vs after
 
+```{r}
+f7<- p1/p2 + plot_annotation(tag_levels = list(c('Before', 'After'), '1'))
+f7
+```
+
+# Fig 8 Boxplot of joviality within different interest groups
+
+```{r}
+p1<-ggplot(data=data, aes(y = joviality, x= interestGroup)) + geom_boxplot() +
+  facet_grid(educationLevel ~.)
+```
+
+## 8.1 Critics
+
+### 8.1.1 Athetic:
+
+- 1. We can make it more beautiful by coloring each interest group
+
+### 8.1.2 Clarity:
+
+- 1. InterestGroup and educationLevel are both catergorical data with 4 and 10 options seperately. If we plot boxplot for them, there're 40 boxplots. Readers may feel overwhelmed looking at them. So I think we can change it into **scatterplots**.
+- 2. Used **group_by** and **summarise** to compute the mean of joviality for different education levels. 
+- 3. Added **title and subtitle** to include our insights of the graph to make it more informative.
+
+```{r}
+new_data <- data %>%
+  group_by(educationLevel,interestGroup)%>% 
+summarise(
+  joviality_mean = mean(joviality),
+)
+p2<-ggplot(data=new_data,
+           aes(x = interestGroup, 
+               y=joviality_mean, 
+               size=joviality_mean, 
+               color=educationLevel)) +
+  geom_point()+
+  facet_grid(educationLevel~.)+
+  ylim(0, 1) +
+  labs(y= 'Hapiness', x= 'Interest Group',
+       title = "Fig 8. Does happiness differ with different education levels and interest groups?",
+       subtitle = "Generally, people is happier with higher education level.\n(H: higher education happier, E,H: no diff, A: higher education less happy)") +
+  geom_text(aes(label= paste0(round(joviality_mean,2)*100,'%')), 
+            vjust= -1, 
+            size= 4,
+            angle=0) +
+  theme(axis.title.y= element_text(angle=90), 
+        axis.ticks.x= element_blank(),
+        panel.background= element_blank(), 
+        axis.line= element_line(color= 'grey'),
+        legend.position="top")+
+  guides(size="none",color="none")
+p2
+```
+
+## 8.2 Before vs after
+
+Before
+
+```{r echo=FALSE}
+p1
+```
+
+After
+
+```{r echo=FALSE}
+p2
+f8<- p1/p2 + plot_annotation(tag_levels = list(c('Before', 'After'), '1'))
+```
+
+# Fig 9 Scatterplot of joviality for different ages
+
+```{r}
+dpp <- data %>%
+  group_by(age) %>%
+  summarise(joviality = mean(joviality))
+p1 <- ggplot(data=dpp, aes(x=age, y=joviality)) + geom_point() +
+  coord_cartesian(xlim=c(20, 60), ylim=c(0, 1)) + 
+  geom_hline(yintercept=0.5, linetype="dashed", color="grey60", size=1) +  
+  geom_vline(xintercept=40, linetype="dashed", color="grey60", size=1)
+p1
+```
+
+## 9.1 Critics
+
+### 9.1.1 Athetic:
+
+- 1. We can make it more beautiful by coloring it in light blue.
+
+### 9.1.2 Clarity:
+
+- 1. We can use **color** of the plot to show **joviality**.
+- 2. **Highlighted** the points whose joviality > 0.5.
+- 3. Changed x into age groups.
+- 4. Added **titles and subtitles**
+
+```{r}
+dpp <- data %>%
+  group_by(Age_Group) %>%
+  summarise(joviality = mean(joviality))
+p2 <- ggplot(data=dpp, aes(x=Age_Group, y=joviality, color=joviality)) + geom_point() +
+  geom_hline(yintercept=0.5, linetype="dashed", color="grey60", size=1) +  
+  guides(size='none')+
+  ylim(0.3, 0.65) +
+  labs(y= 'Hapiness', x= 'Age Group',
+       title = "Fig 9. Does happiness differ with age?",
+       subtitle = "People become less happy as growing old") +
+  geom_text(aes(label= paste0(round(joviality,2)*100,'%')), 
+            vjust= -0.5, 
+            size= 3,
+            angle=0) +
+  gghighlight(joviality > 0.5)+
+  theme(axis.title.y= element_text(angle=90), 
+        axis.ticks.x= element_blank(),
+        panel.background= element_blank(), 
+        axis.line= element_line(color= 'grey'),
+        legend.position="top")
+p2
+```
+
+## 9.2 Before vs after
+
+```{r}
+f9<- p1/p2 + plot_annotation(tag_levels = list(c('Before', 'After'), '1'))
+f9
+```
+
+
+# Fig 10 Barplot of householdSize
+
+## 10.1 Critics
+
+```{r}
+p1<-ggplot(data=data, aes(x=householdSize)) + geom_bar() + coord_flip()
+```
+
+### 10.1.1 Athetic:
+
+- 1. We can make it more beautiful by coloring it in light blue.
+
+### 10.1.2 Clarity:
+
+- 1. We can add label to show the number and the ratio of people with each household size
+
+```{r}
+p2<-ggplot(data=data, aes(x=householdSize)) + 
+  geom_bar(fill="light blue") +
+  geom_text(stat = 'count',
+           aes(label= paste0(stat(count), ' (', 
+                             round(stat(count)/sum(stat(count))*100, 
+                             1), '%)')), vjust= -1, size= 1.5, angle=0) +
+  ylim(0, 400) +
+  labs(y= 'No. of\nResidents', x= 'Household Size',
+       title = "Fig 10. Distribution of Household Size",
+       subtitle = "") +
+  theme(axis.title.y= element_text(angle=90), axis.ticks.x= element_blank(),
+        axis.text.x.bottom = element_text(size=10),
+        panel.background= element_blank(), axis.line= element_line(color= 'grey')) +
+  theme_bw()
+p2
+```
+
+## 10.2 Before vs. after
+
+```{r}
+f10<- p1/p2 + plot_annotation(tag_levels = list(c('Before', 'After'), '1'))
+f10
+```
+
+# Overview of all the graphs
+
+```{r echo=FALSE}
+#f1+f2+f3+f4+f5+f6+f7+f8+f9+f10
+f1
+f2
+f3
+f4
+f5
+f6
+f7
+f8
+f9
+f10
+```
 
