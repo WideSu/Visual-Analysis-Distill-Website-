@@ -18,6 +18,8 @@ In this take-home exercise 2, we are required to:
 - critic the submission in terms of **clarity and aesthetics**, and
 - **remake the original design** by using the data visualisation principles and best practice you had learned in Lesson 1 and 2.
 
+You can check out the full [code](https://github.com/WideSu/VA/blob/master/th_ex/th_ex2.Rmd) on GitHub.
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
                       eval = TRUE,
@@ -25,12 +27,12 @@ knitr::opts_chunk$set(echo = TRUE,
                       message = FALSE)
 ```
 
-## Introduction
+# Introduction
   
 This exercise requires us to apply the skills you had learned in Lesson 1 and Hands-on Exercise 1 to reveal the demographic of the city of Engagement, Ohio USA by using appropriate static statistical graphics methods. The data should be processed by using appropriate tidyverse family of packages and the statistical graphics must be prepared using ggplot2 and its extensions.
   
 ```{r include=FALSE}
-packages = c('tidyverse', 'ggplot2', 'dplyr')
+packages = c('tidyverse', 'knitr', 'ggdist', 'scales', 'grid', 'gridExtra','patchwork','ggsignif','gghighlight',"hrbrthemes")
 
 for(p in packages) {
   if(!require(p, character.only = T)) {
@@ -39,54 +41,271 @@ for(p in packages) {
   library(p, character.only = T)
 }
 ```
-  
-## Load Data
 
-```{r load data, echo=TRUE}
+```{r load data, include=FALSE, preview=TRUE}
 library(tidyverse)
 library(ggplot2)
 data <- read_csv('./data/Participants.csv')
+data$educationLevel <-factor(data$educationLevel,ordered=TRUE,levels=c('Low','HighSchoolOrCollege',"Bachelors","Graduate"))
 glimpse(data)
 ```
 
-## Graphics with ggplot2
-
-The origional Plot:
-- Athetic: 
-  - I think we can add some annotations and labels to make the graph more informative.
-- Cleartivity: 
-
-```{r age distribution, echo=TRUE}
-ggplot(data=data) + aes(x=age) +
+# Fig 1 Distribution of age groups
+```{r echo=TRUE}
+p1 <- ggplot(data=data) + aes(x=age) +
   geom_histogram(bins=20, boundary=60, color="black", fill="grey") +
   ggtitle("Distribution of Participants' Age")
+p1
+```
+## 1.1 Critics
+### 1.1.1 Athetic: 
+
+This graph is clear and it uses the right graph type(bar) to present the content(distribution of age group). We can make it more attractive by making it **colored** and **remove** the unnecessary **grey background** color and **ticks**.
+
+- 1. We can change the **`fill`** in `geom_bar` of using **color**.
+- 2. We can use `panel.background = element_blank()` in `theme` to **remove the background color** and make the bar stand out in the background.
+- 3. We can use `axis.ticks.x= element_blank()` in `theme` to **remove the ticks** since x is categorical.
+
+After those steps, the graph becomes:
+
+```{r echo=TRUE}
+p2 <- ggplot(data = data, 
+       aes(x = age)) +
+  ggtitle("Distribution of Participants' Age")+
+  geom_bar(bins=20, boundary = 60, fill="light blue") +
+  theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(),
+        panel.background= element_blank(), axis.line= element_line(color= 'grey'))
+p2
+```
+### 1.1.2 Clarity: 
+
+We can see the distribution of 20 age groups in the orgional graph. 
+But it's not clear which age group each bar is and how many people are in each age group. Besides, the graph **ignores people beyond 60** years old.
+
+- 1. The origional graph has 20 bins, which is too many for people to get information from it. So I changed it into **6 groups** from **below 20 to above 60 with 10 years as the gap**.
+- 2. We can add some annotations on the top of each bar using **geom_text** to make the graph more informative.
+- 3. The y label is count, we can make it more informative by using **the No. of residence**.
+- 4. We can **highlight** the age groups that between **20 and 60** years old which is the majority of our study.
+- 5. We can add **title and subtitle** to make the graph more informative.
+
+After that the graph becomes:
+
+```{r echo=TRUE}
+brks <- c(17, 20, 30, 40, 50, 60, Inf)
+grps <- c('<=20', '21-30', '31-40', '41-50', '51-60', '>60')
+data$Age_Group <- cut(data$age, breaks=brks, labels = grps, right = FALSE)
+p2 <- ggplot(data = data, 
+       aes(x = Age_Group)) +
+  geom_bar(fill="light blue") +
+  ylim(0, 300) +
+  geom_text(stat = 'count',
+           aes(label= paste0(stat(count), ' (', 
+                             round(stat(count)/sum(stat(count))*100, 
+                             1), '%)')), vjust= -0.5, size= 2.5) +
+  gghighlight(Age_Group != "<=20" & Age_Group != ">60")+
+  labs(y= 'No. of\nResidents', x= 'Age Group',
+       title = "Fig 1. Distribution of Residents' Age",
+       subtitle = "Most of residents are in working age(20-60)") +
+  theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(),
+        panel.background= element_blank(), axis.line= element_line(color= 'grey'))
+p2
 ```
 
-The changed version:
+## 1.2 Before vs after the makeover
+```{r echo=TRUE, preview=TRUE}
+# The original plot
+p1 <- ggplot(data=data) + aes(x=age) +
+  geom_histogram(bins=20, boundary=60, color="black", fill="grey") +
+  ggtitle("Distribution of Participants' Age")
 
-```{r}
-brks <- c(17, 20, 25, 30, 35, 40, 45, 50, 55, 60)
-grps <- c('20 & Below', '21-25', '26-30', '31-35', '36-40', '41-45', 
-          '46-50', '51-55', '56-60')
-
-# data$Age_Group <- cut(data$Age, breaks=brks, labels = grps)
+# The plot after makeover
+brks <- c(17, 20, 30, 40, 50, 60, Inf)
+grps <- c('<=20', '21-30', '31-40', '41-50', '51-60', '>60')
+data$Age_Group <- cut(data$age, breaks=brks, labels = grps, right = FALSE)
+p2 <- ggplot(data = data, 
+       aes(x = Age_Group)) +
+  geom_bar(fill="light blue") +
+  ylim(0, 300) +
+  geom_text(stat = 'count',
+           aes(label= paste0(stat(count), ' (', 
+                             round(stat(count)/sum(stat(count))*100, 
+                             1), '%)')), vjust= -0.5, size= 2.5) +
+  gghighlight(Age_Group != "<=20" & Age_Group != ">60")+
+  labs(y= 'No. of\nResidents', x= 'Age Group',
+       title = "Fig 1. Distribution of Residents' Age",
+       subtitle = "Most of residents are in working age(20-60)") +
+  theme(axis.title.y= element_text(angle=0), axis.ticks.x= element_blank(),
+        panel.background= element_blank(), axis.line= element_line(color= 'grey'))
+# group them together using patchwork
+f1<- p1/p2 + plot_annotation(tag_levels = list(c('Before', 'After'), '1'))
+f1
 ```
+
+# Fig 2 Distribution of age groups for people with and without kids
+```{r echo=TRUE}
+p1 <- ggplot(data=data, aes(x=age, fill=haveKids)) +
+  geom_histogram(bins=20, color='gray30')
+p1
+```
+## 2.1 Critics
+### 2.1.1 Athetic: 
+
+This graph is beautiful for its color and clear legend. I have no suggestion on that.
+
+### 2.1.2 Clarity: 
+
+But it's not easy to get information in this graph. I assume that Yu Di wants to compare the portion of people with kids in different age groups. So we can make it more informative by using scatter plot whose y is the portion of people who have kids and its x is age groups.
+
+- 1. We can use **`group_by`** and **`prop.table`** to get the proportion to have kids in each age group.
+- 2. Filtered and only show the proportion to have kids in each age group(leave out the proportion of not having kids).
+- 3. Used the size and color to show the size of proportion.
+- 4. Changed y label into **the Ratio of residence with kids**.
+- 5. Added **title and subtitle** to include our insights of the graph to make it more informative.
+
+```{r echo=TRUE}
+brks <- c(17, 20, 25, 30, 35, 40, 45, 50, 55, 60, Inf)
+grps <- c('<=20', '21-25','26-30','31-35', '36-40', '41-45', '46-50', '51-55','56-60', '>60')
+data$Age_Group <- cut(data$age, breaks=brks, labels = grps, right = FALSE)
+new_data <- data %>%
+  count(Age_Group, haveKids) %>%
+  group_by(Age_Group) %>%          # now required with changes to dplyr::count()
+  mutate(prop = prop.table(n)) %>% 
+  filter(haveKids == TRUE)
+p2<-ggplot(data=new_data,
+           aes(x = Age_Group, 
+               y=prop, 
+               size=prop, 
+               color=prop)) +
+  geom_point()+
+  ylim(0, 0.45) +
+  labs(y= 'Ratio\n of residences\n having kids', x= 'Age Group',
+       title = "Fig 2. Does of ratio of having kids differ in different age groups?",
+       subtitle = "The proportion of residences having kids is smaller in elder age groups.\n The ratio of having kids in each age group is around 0.2-0.4") +
+  geom_text(aes(label= paste0(Age_Group, '(', round(prop,2)*100,'%)')), 
+            vjust= -1.5, 
+            size= 2.5,
+            angle=15) +
+  theme(axis.title.y= element_text(angle=0), 
+        axis.ticks.x= element_blank(),
+        panel.background= element_blank(), 
+        axis.line= element_line(color= 'grey'))+
+  guides(size='none',color="none")
+p2
+```
+## 2.2 Before vs after makeover
+```{r echo=TRUE}
+p1 <- ggplot(data=data, aes(x=age, fill=haveKids)) +
+  geom_histogram(bins=20, color='gray30')
+#+annotate("text", x = 20, y = 75, label = "Before",size=3,color='red')
+
+new_data <- data %>%
+  count(Age_Group, haveKids) %>%
+  group_by(Age_Group) %>%          # now required with changes to dplyr::count()
+  mutate(prop = prop.table(n)) %>% 
+  filter(haveKids == TRUE)
+p2<-ggplot(data=new_data,
+           aes(x = Age_Group, 
+               y=prop, 
+               size=prop, 
+               color=prop)) +
+  geom_point()+
+  ylim(0, 0.45) +
+  labs(y= 'Ratio\n of ppl \n having kids', x= 'Age Group',
+       title = "Fig 2. Does of ratio of having kids \n differ in different age groups?",
+       subtitle = "The proportion of people having kids is smaller in elder age groups.\n The ratio of having kids in each age group is around 0.2-0.4") +
+  geom_text(aes(label= paste0(Age_Group, '(', round(prop,2)*100,'%)')), 
+            vjust= -3, 
+            size= 1.5,
+            angle=30) +
+  theme(axis.title.y= element_text(angle=0), 
+        axis.ticks.x= element_blank(),
+        panel.background= element_blank(), 
+        axis.line= element_line(color= 'grey'))+
+  guides(size='none',color="none")
+f2<- p1/p2 + plot_annotation(tag_levels = list(c('Before', 'After'), '1'))
+f2
+```
+
+# Fig 3 The age distribution with different education level
+## 3.1 Critics
 
 ```{r, echo=TRUE}
-ggplot(data=data, aes(x=age, fill=haveKids)) +
-  geom_histogram(bins=100, color='gray30')
-
 ggplot(data=data, aes(x=age, fill=educationLevel)) +
   geom_histogram(bins=20, color='gray30')
+```
 
+### 3.1.1 Athetic: 
 
+This graph is beautiful for its color and clear legend.
+
+### 3.1.2 Clarity:
+
+But it's not easy to get information in this graph. We can make it more informative by using scatter plot whose x is different age groups and its y is ratio of each education level.
+
+- 1. **Grouped** people **into 6 age groups** from below 20 to above 60 with a gap of 10 years.
+- 2. Used **`groupby`** and **`prop.table`** to compute the ratio of each education level in each age groups.
+- 3. Used the **size** of circle to show the size of **proportion**.
+- 4. Used the **color** of circle to differentiate **education levels**.
+- 5. Changed y label into **Ratio**.
+- 6. Added **title and subtitle** to include our insights of the graph to make it more informative.
+
+```{r}
+brks <- c(17, 20, 30, 40, 50, 60, Inf)
+grps <- c('<=20', '21-30','31-40', '41-50', '51-60', '>60')
+data$Age_Group <- cut(data$age, breaks=brks, labels = grps, right = FALSE)
+new_data <- data %>%
+  count(Age_Group, educationLevel) %>%
+  group_by(Age_Group) %>%          # now required with changes to dplyr::count()
+  mutate(prop = prop.table(n))
+new_data
+```
+
+```{r}
+p2<-ggplot(data=new_data,
+           aes(x = Age_Group, 
+               y=prop, 
+               size=prop, 
+               color=educationLevel)) +
+  geom_point()+
+  facet_wrap(~ educationLevel) + 
+  ylim(0, 0.9) +
+  labs(y= 'Ratio', x= 'Age Group',
+       title = "Fig 3. Does the ratio of education Level differ in different age groups?",
+       subtitle = "Different age group has similar education backgroud") +
+  geom_text(aes(label= paste0(Age_Group, '(', round(prop,2)*100,'%)')), 
+            vjust= -2, 
+            size= 2,
+            angle=15) +
+  theme(axis.title.y= element_text(angle=0), 
+        axis.ticks.x= element_blank(),
+        panel.background= element_blank(), 
+        axis.line= element_line(color= 'grey'),
+        legend.position="top")+
+  guides(size="none")
+p2
+```
+
+## 3.2 Before vs after makeover
+
+Before
+
+```{r echo=FALSE}
+p1
+```
+After
+
+```{r echo=FALSE}
+p2
+```
+
+```{r}
 d <- data
 d_bg <- d[, -5]
 ggplot(d, aes(x = age, fill = educationLevel)) + 
   geom_histogram(data=d_bg, fill="grey", alpha=.5) +
   geom_histogram(colour="black") + 
   facet_wrap(~ educationLevel) + 
-  guides(fill = FALSE) + 
+  guides(fill = "none") + 
   theme_bw()
 ```
 

@@ -11,7 +11,7 @@ output:
     toc_depth: 3
 ---
 
-```{r}
+```{r eval=FALSE}
 packages = c('ggiraph', 'plotly', 
              'DT', 'patchwork',
              'gganimate', 'tidyverse',
@@ -385,4 +385,8 @@ d3treeR package is not in Cran, you will load the devtools library and install t
 
 ```{r}
 library(d3treeR)
+```
+
+```{r}
+d3tree(tm, rootname = "World" )
 ```
