@@ -233,7 +233,7 @@ f2
 # Fig 3 The age distribution with different education level
 ## 3.1 Critics
 
-```{r, echo=TRUE}
+```{r echo=TRUE}
 p1 <- ggplot(data=data, aes(x=age, fill=educationLevel)) +
   geom_histogram(bins=20, color='gray30')
 p1
