@@ -246,7 +246,7 @@ ggplot(participants_data,
 
 ### 3.2.2 What's the age distribution in different Interest Group?
 
-Violin plot for age in different Interest Group.
+Box plot for age in different Interest Group.
 
 ```{r layout="l-body-outset", preview=TRUE}
 ggplot(data=participants_data,
