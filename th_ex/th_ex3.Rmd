@@ -33,7 +33,7 @@ packages = c('ggiraph', 'plotly', 'tidyverse', 'DT','gganimate',
              'knitr', 'ggdist', 'scales', 'grid', 'gridExtra',
              'patchwork','ggsignif','gghighlight',"hrbrthemes",
              'readxl', 'gifski', 'gapminder','treemap', 'treemapify',
-             'rPackedBar')
+             'rPackedBar','ggridges')
 print(length(packages))
 
 for(p in packages) {
@@ -120,6 +120,13 @@ ggplot(data=total, aes(x=date, y=remain)) +
 ```{r}
 total$remain <- (total$income - total$outcome)
 total$remain <- round(total$remain, 1)
+wage <- financial %>%
+  filter(category == 'Wage') %>%
+  group_by(participantId) %>%
+  summarise(wage = mean(amount))
+brks <- c(0, 100, 200, 300, 400, Inf)
+grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
+wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
 ggplot(data=total, aes(x=date, y=remain)) +
   geom_bar(stat = "identity", width = 0.5, fill="steelblue") +
   coord_cartesian(ylim = c(0, 160)) + 
@@ -135,7 +142,6 @@ ggplot(data=total, aes(x=date, y=remain)) +
         panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))
 ```
 ```{r}
-
 wage <- financial %>%
   filter(category == "Wage") %>%
   group_by(participantId) %>%
@@ -145,7 +151,7 @@ grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
 wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
 unique(wage$Wage_Group)
 
-p <- ggplot(data=wage, aes(x=wage, fill=Wage_Group)) +
+p <- ggplot(data=wage, aes(x=wage, fill=Wage_Group, y=Wage_Group)) +
     geom_histogram(position="dodge",aes(y = ..density..), binwidth=density(wage$wage)$bw) +
     geom_density(fill="red", alpha = 0.2)+
   labs(y= 'Density', x= 'Wage',
@@ -156,6 +162,22 @@ ggplotly(p)
 #fig <- plot_ly(wage, x = ~wage, fill = ~Wage_Group ,type = "histogram")
 
 #fig
+```
+```{r}
+p <- ggplot(comparison, aes(x = ratio, y = Wage_Group)) +
+  geom_density_ridges(calc_ecdf = TRUE,
+                      quantiles = 4, 
+                      quantile_lines = TRUE,
+                      alpha = .2) +
+  labs(y= 'Wage Group', x= 'Ratio in wage',
+       title = "Fig3: Wage Distribution",
+       subtitle = "People with low wages tend to spend most of their money")+
+  theme_ridges() + 
+  scale_fill_viridis_d(name = "Quartiles")+
+  ggtitle("Distribution of outcome/income Ratio in Different Wage Group")+
+  theme(plot.title = element_text(size = 12), 
+        legend.position = "top")
+p
 ```
 
 
