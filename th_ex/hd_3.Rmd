@@ -10,8 +10,14 @@ output:
     toc: true
     toc_depth: 3
 ---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      eval = TRUE,
+                      warning = FALSE, 
+                      message = FALSE)
+```
 
-```{r eval=FALSE}
+```{r}
 packages = c('ggiraph', 'plotly', 
              'DT', 'patchwork',
              'gganimate', 'tidyverse',
@@ -29,7 +35,7 @@ GDP <- read_csv("./data/Exam_data.csv")
 ```
 
 ```{r}
-exam_data <- read_csv("data/Exam_data.csv")
+exam_data <- read_csv("./data/Exam_data.csv")
 p <- ggplot(data=exam_data, 
        aes(x = MATHS)) +
   geom_dotplot_interactive(
@@ -383,10 +389,3 @@ install_github("timelyportfolio/d3treeR")
 
 d3treeR package is not in Cran, you will load the devtools library and install the package found in github by using the codes below.
 
-```{r}
-library(d3treeR)
-```
-
-```{r}
-d3tree(tm, rootname = "World" )
-```
