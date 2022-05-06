@@ -58,12 +58,12 @@ financial$month <- format(y, format="%m")
 income <- financial %>%
   filter(category %in% c('Wage', 'RentAdjustment')) %>%
   group_by(year, month) %>%
-  summarise(income = sum(amount))
+  summarise(income = mean(amount))
 
 outcome <- financial %>%
   filter(!category %in% c('Wage', 'RentAdjustment')) %>%
   group_by(year, month) %>%
-  summarise(outcome = sum(abs(amount)))
+  summarise(outcome = mean(abs(amount)))
 total <- merge(income,outcome,by=c("year","month"))
 total$date <- paste(total$year, total$month, sep='-')
 total$coef <- total$outcome / total$income
@@ -93,6 +93,46 @@ girafe(
     opts_hover_inv(css = "stroke-width: 1;opacity:0.6;"),
     opts_hover(css = "stroke-width: 4; opacity: 1;"))
 )
-unique(total$year)
 ```
+```{r}
+fig <- plot_ly(total, x = ~date, y = ~coef, type = 'scatter',mode = 'lines+markers')
+fig <- fig %>% layout(title = 'Fig 1.Residence\'s living status through time',
+                      xaxis = list(title = "Date"),
+                      yaxis = list (title = "Spend/Income"))
+fig
+```
+```{r}
+total$remain <- (total$income - total$outcome)
+total$remain <- round(total$remain, 1)
+ggplot(data=total, aes(x=date, y=remain)) +
+  geom_bar(stat = "identity", width = 0.5, fill="steelblue") +
+  labs(y= 'Fig2. Total Deposit\n(Dollar)', x= 'Date',
+       title = "Trend of Living Standards",
+       subtitle = "Highest remaining in 2022-03") +
+  geom_text(aes(label = remain), vjust = -1.5, colour = "white") +
+  theme(axis.title.y= element_text(angle=90),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+        axis.ticks.x= element_blank(),
+        panel.background= element_blank(), 
+        axis.line= element_line(color= 'grey'), 
+        panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))
+```
+```{r}
+total$remain <- (total$income - total$outcome)
+total$remain <- round(total$remain, 1)
+ggplot(data=total, aes(x=date, y=remain)) +
+  geom_bar(stat = "identity", width = 0.5, fill="steelblue") +
+  coord_cartesian(ylim = c(0, 160)) + 
+  labs(y= 'Total Deposit', x= 'Date',
+       title = "Trend of Living Standards",
+       subtitle = "Highest remaining in 2022-03") +
+  geom_text(aes(label = remain), vjust = -1, colour = "black") +
+  theme(axis.title.y= element_text(angle=90),
+        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+        axis.ticks.x= element_blank(),
+        panel.background= element_blank(), 
+        axis.line= element_line(color= 'grey'), 
+        panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))
+```
+
 
