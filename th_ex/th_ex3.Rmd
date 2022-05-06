@@ -58,12 +58,12 @@ financial$month <- format(y, format="%m")
 income <- financial %>%
   filter(category %in% c('Wage', 'RentAdjustment')) %>%
   group_by(year, month) %>%
-  summarise(income = sum(amount))
+  summarise(income = mean(amount))
 
 outcome <- financial %>%
   filter(!category %in% c('Wage', 'RentAdjustment')) %>%
   group_by(year, month) %>%
-  summarise(outcome = sum(abs(amount)))
+  summarise(outcome = mean(abs(amount)))
 total <- merge(income,outcome,by=c("year","month"))
 total$date <- paste(total$year, total$month, sep='-')
 total$coef <- total$outcome / total$income
@@ -96,24 +96,26 @@ girafe(
 ```
 ```{r}
 fig <- plot_ly(total, x = ~date, y = ~coef, type = 'scatter',mode = 'lines+markers')
-fig <- fig %>% layout(title = 'Fig 1.Residence\'s living status through time')
+fig <- fig %>% layout(title = 'Fig 1.Residence\'s living status through time',
+                      xaxis = list(title = "Date"),
+                      yaxis = list (title = "Spend/Income"))
 fig
 ```
 ```{r}
-total$remain <- total$income - total$outcome
-p1 <- ggplot(data=total) + aes(x=date) +
-  geom_bar(color="black", fill="grey") +
-  labs(y= 'Income-speed', x= 'Date',
-       title = "Fig 1.Residence's living status through time",
-       subtitle = "Highest standards in 2022-04") +
+total$remain <- (total$income - total$outcome)
+total$remain <- round(total$remain, 1)
+ggplot(data=total, aes(x=date, y=remain)) +
+  geom_bar(stat = "identity", width = 0.5, fill="steelblue") +
+  labs(y= 'Fig2. Total Deposit\n(Dollar)', x= 'Date',
+       title = "Trend of Living Standards",
+       subtitle = "Highest remaining in 2022-03") +
+  geom_text(aes(label = remain), vjust = 1.5, colour = "white") +
   theme(axis.title.y= element_text(angle=90),
         axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
         axis.ticks.x= element_blank(),
         panel.background= element_blank(), 
-        panel.grid.major.y = element_line(color = "grey",
-                                  size = 0.75,
-                                  linetype = 2))
-p1
+        axis.line= element_line(color= 'grey'), 
+        panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))
 ```
 
 
