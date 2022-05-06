@@ -135,9 +135,27 @@ ggplot(data=total, aes(x=date, y=remain)) +
         panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))
 ```
 ```{r}
-fig <- plot_ly(total, x = ~income, type = "histogram")
 
-fig
+wage <- financial %>%
+  filter(category == "Wage") %>%
+  group_by(participantId) %>%
+  summarise(wage = mean(amount))
+brks <- c(0, 100, 200, 300, 400, Inf)
+grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
+wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
+unique(wage$Wage_Group)
+
+p <- ggplot(data=wage, aes(x=wage, fill=Wage_Group)) +
+    geom_histogram(position="dodge",aes(y = ..density..), binwidth=density(wage$wage)$bw) +
+    geom_density(fill="red", alpha = 0.2)+
+  labs(y= 'Density', x= 'Wage',
+       title = "Fig3: Wage Distribution",
+       subtitle = "Most people get 50 per month")
+
+ggplotly(p)
+#fig <- plot_ly(wage, x = ~wage, fill = ~Wage_Group ,type = "histogram")
+
+#fig
 ```
 
 
