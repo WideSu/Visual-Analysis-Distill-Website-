@@ -124,7 +124,7 @@ ggplot(data=total, aes(x=date, y=remain)) +
   geom_bar(stat = "identity", width = 0.5, fill="steelblue") +
   coord_cartesian(ylim = c(0, 160)) + 
   labs(y= 'Total Deposit', x= 'Date',
-       title = "Trend of Living Standards",
+       title = "Fig2. Trend of Living Standards",
        subtitle = "Highest remaining in 2022-03") +
   geom_text(aes(label = remain), vjust = -1, colour = "black") +
   theme(axis.title.y= element_text(angle=90),
@@ -133,6 +133,11 @@ ggplot(data=total, aes(x=date, y=remain)) +
         panel.background= element_blank(), 
         axis.line= element_line(color= 'grey'), 
         panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))
+```
+```{r}
+fig <- plot_ly(total, x = ~income, type = "histogram")
+
+fig
 ```
 
 
