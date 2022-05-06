@@ -163,21 +163,40 @@ ggplotly(p)
 
 #fig
 ```
+
 ```{r}
-p <- ggplot(comparison, aes(x = ratio, y = Wage_Group)) +
-  geom_density_ridges(calc_ecdf = TRUE,
-                      quantiles = 4, 
-                      quantile_lines = TRUE,
-                      alpha = .2) +
-  labs(y= 'Wage Group', x= 'Ratio in wage',
+education <- financial %>%
+  filter(category == "Education") %>%
+  group_by(participantId) %>%
+  summarise(education_spend = mean(amount))
+
+brks <- c(0, 100, 200, 300, 400, Inf)
+grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
+wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
+unique(wage$Wage_Group)
+
+p <- ggplot(data=wage, aes(x=wage, fill=Wage_Group, y=Wage_Group)) +
+    geom_histogram(position="dodge",aes(y = ..density..), binwidth=density(wage$wage)$bw) +
+    geom_density(fill="red", alpha = 0.2)+
+  labs(y= 'Density', x= 'Wage',
        title = "Fig3: Wage Distribution",
-       subtitle = "People with low wages tend to spend most of their money")+
-  theme_ridges() + 
-  scale_fill_viridis_d(name = "Quartiles")+
-  ggtitle("Distribution of outcome/income Ratio in Different Wage Group")+
-  theme(plot.title = element_text(size = 12), 
-        legend.position = "top")
-p
+       subtitle = "Most people get 50 per month")
+
+ggplotly(p)
+```
+
+```{r}
+outcome_different_cats <- financial %>%
+  filter(!category %in% c('Wage', 'RentAdjustment')) %>%
+  group_by(participantId, category) %>%
+  summarise(outcome = mean(abs(amount))) %>%
+  merge(wage, by='participantId')
+outcome_different_cats$ratio <- outcome_different_cats$outcome / outcome_different_cats$wage
+
+ggplot(data=outcome_different_cats, aes(x= ratio)) + 
+  geom_density() +
+  coord_cartesian(xlim=c(0, 0.1)) + 
+  facet_grid(Wage_Group ~ category)
 ```
 
 
