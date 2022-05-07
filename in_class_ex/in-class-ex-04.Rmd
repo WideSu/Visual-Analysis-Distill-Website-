@@ -18,9 +18,20 @@ output:
 knitr::opts_chunk$set(echo = FALSE)
 ```
 
-Distill is a publication format for scientific and technical writing, native to the web. 
+```{r include=FALSE}
+packages = c('ggiraph', 'plotly', 'tidyverse', 'DT','gganimate',
+             'knitr', 'ggdist', 'scales', 'grid', 'gridExtra',
+             'patchwork','ggsignif','gghighlight',"hrbrthemes",
+             'readxl', 'gifski', 'gapminder','treemap', 'treemapify',
+             'rPackedBar','ggridges','rmarkdown','ggstatsplot')
 
-Learn more about using Distill for R Markdown at <https://rstudio.github.io/distill>.
+for(p in packages) {
+  if(!require(p, character.only = T)) {
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
 
 
 
