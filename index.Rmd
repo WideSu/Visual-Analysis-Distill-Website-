@@ -2,7 +2,9 @@
 title: "Data Analytics Journey"
 site: distill::distill_website
 ---
-
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
 Welcome to the home page for [HuangAnni](https://huanganni.netlify.app/huanganni.html)'s assignments for [ISSS608 Visual Analytics and Applications](https://isss608-ay2021-22april.netlify.app/).
 
 Instructor: Dr. Kam Tin Seong, Associate Professor of Information Systems (Practice)

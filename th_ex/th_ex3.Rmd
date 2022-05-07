@@ -71,28 +71,6 @@ unique(total$date)
 library(rmarkdown)
 paged_table(financial, options = list(rows.print = 15, cols.print = 5))
 total$coef <- total$outcome/total$income
-p1 <- ggplot(data=total) + aes(x=date, y=coef,group=1) +
-  geom_line(color='black')+
-  geom_point(color="black", fill="grey") +
-  labs(y= 'Spend/Income', x= 'Date',
-       title = "Fig 1.Residence's living status through time",
-       subtitle = "Highest standards in 2022-04") +
-  theme(axis.title.y= element_text(angle=90),
-        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
-        axis.ticks.x= element_blank(),
-        panel.background= element_blank(), 
-        axis.line= element_line(color= 'grey'),
-        panel.grid.major.y = element_line(color = "grey",
-                                  size = 0.75,
-                                  linetype = 2))
-girafe(
-  ggobj = p1,
-  width_svg = 6,
-  height_svg = 6*0.618,
-  options = list(
-    opts_hover_inv(css = "stroke-width: 1;opacity:0.6;"),
-    opts_hover(css = "stroke-width: 4; opacity: 1;"))
-)
 ```
 ```{r}
 fig <- plot_ly(total, x = ~date, y = ~coef, type = 'scatter',mode = 'lines+markers')
@@ -104,22 +82,6 @@ fig
 ```{r}
 total$remain <- (total$income - total$outcome)
 total$remain <- round(total$remain, 1)
-ggplot(data=total, aes(x=date, y=remain)) +
-  geom_bar(stat = "identity", width = 0.5, fill="steelblue") +
-  labs(y= 'Fig2. Total Deposit\n(Dollar)', x= 'Date',
-       title = "Trend of Living Standards",
-       subtitle = "Highest remaining in 2022-03") +
-  geom_text(aes(label = remain), vjust = -1.5, colour = "white") +
-  theme(axis.title.y= element_text(angle=90),
-        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
-        axis.ticks.x= element_blank(),
-        panel.background= element_blank(), 
-        axis.line= element_line(color= 'grey'), 
-        panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))
-```
-```{r}
-total$remain <- (total$income - total$outcome)
-total$remain <- round(total$remain, 1)
 wage <- financial %>%
   filter(category == 'Wage') %>%
   group_by(participantId) %>%
@@ -127,7 +89,7 @@ wage <- financial %>%
 brks <- c(0, 100, 200, 300, 400, Inf)
 grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
 wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
-ggplot(data=total, aes(x=date, y=remain)) +
+p<-ggplot(data=total, aes(x=date, y=remain)) +
   geom_bar(stat = "identity", width = 0.5, fill="steelblue") +
   coord_cartesian(ylim = c(0, 160)) + 
   labs(y= 'Total Deposit', x= 'Date',
@@ -140,6 +102,7 @@ ggplot(data=total, aes(x=date, y=remain)) +
         panel.background= element_blank(), 
         axis.line= element_line(color= 'grey'), 
         panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))
+ggplotly(p)
 ```
 ```{r}
 wage <- financial %>%
@@ -150,18 +113,40 @@ brks <- c(0, 100, 200, 300, 400, Inf)
 grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
 wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
 unique(wage$Wage_Group)
-
-p <- ggplot(data=wage, aes(x=wage, fill=Wage_Group, y=Wage_Group)) +
-    geom_histogram(position="dodge",aes(y = ..density..), binwidth=density(wage$wage)$bw) +
-    geom_density(fill="red", alpha = 0.2)+
-  labs(y= 'Density', x= 'Wage',
-       title = "Fig3: Wage Distribution",
-       subtitle = "Most people get 50 per month")
-
-ggplotly(p)
 #fig <- plot_ly(wage, x = ~wage, fill = ~Wage_Group ,type = "histogram")
 
 #fig
+```
+
+```{r}
+income <- financial %>%
+  filter(category %in% c('Wage', 'RentAdjustment')) %>%
+  group_by(participantId) %>%
+  summarise(income = sum(amount))
+
+outcome <- financial %>%
+  filter(!category %in% c('Wage', 'RentAdjustment')) %>%
+  group_by(participantId) %>%
+  summarise(outcome = sum(abs(amount)))
+
+comparison <- merge(income, outcome, by='participantId') %>%
+  merge(wage, by='participantId')
+comparison$ratio <- comparison$outcome / comparison$income
+
+p <- ggplot(comparison, aes(x = ratio, y = Wage_Group)) +
+  geom_density_ridges(calc_ecdf = TRUE,
+                      quantiles = 4, 
+                      quantile_lines = TRUE,
+                      alpha = .2) +
+  labs(y= 'Wage Group', x= 'Ratio in wage',
+       title = "Fig3: Wage Distribution",
+       subtitle = "People with low wages tend to spend most of their money")+
+  theme_ridges() + 
+  scale_fill_viridis_d(name = "Quartiles")+
+  ggtitle("Fig3: Wage Distribution")+
+  theme(plot.title = element_text(size = 12), 
+        legend.position = "top")
+p
 ```
 
 ```{r}
@@ -177,7 +162,6 @@ unique(wage$Wage_Group)
 
 p <- ggplot(data=wage, aes(x=wage, fill=Wage_Group, y=Wage_Group)) +
     geom_histogram(position="dodge",aes(y = ..density..), binwidth=density(wage$wage)$bw) +
-    geom_density(fill="red", alpha = 0.2)+
   labs(y= 'Density', x= 'Wage',
        title = "Fig3: Wage Distribution",
        subtitle = "Most people get 50 per month")
@@ -193,10 +177,30 @@ outcome_different_cats <- financial %>%
   merge(wage, by='participantId')
 outcome_different_cats$ratio <- outcome_different_cats$outcome / outcome_different_cats$wage
 
-ggplot(data=outcome_different_cats, aes(x= ratio)) + 
+p <- ggplot(data=outcome_different_cats, aes(x= ratio)) + 
   geom_density() +
-  coord_cartesian(xlim=c(0, 0.1)) + 
   facet_grid(Wage_Group ~ category)
+ggplotly(p)
 ```
+```{r}
+participant_data <- read_csv('./data/Participants.csv')
+print(length(participant_data$participantId))
+participant_finance <- merge(participant_data, wage,by=c("participantId"))
+# participant_finance
+```
+```{r}
+fig <- plot_ly(data = financial, 
+               x = ~participant_finance$age, 
+               y = ~participant_finance$wage,
+               color = ~participant_finance$educationLevel)
+# Divide by levels of "sex", in the vertical direction
+# fig <- fig + facet_grid(educationLevel ~ .)
+
+fig <- ggplotly(p)
+
+fig
+```
+
+
 
 
