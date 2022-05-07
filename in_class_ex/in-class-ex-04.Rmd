@@ -15,10 +15,16 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = TRUE,
+                      eval = TRUE,
+                      warning = FALSE, 
+                      message = FALSE,
+                      fig.retina = 100) # make it sharper
 ```
 
-```{r include=FALSE}
+To start with, [ggstatsplot](https://indrajeetpatil.github.io/ggstatsplot/) and tidyverse packages will be launched using library().
+
+```{r}
 packages = c('ggiraph', 'plotly', 'tidyverse', 'DT','gganimate',
              'knitr', 'ggdist', 'scales', 'grid', 'gridExtra',
              'patchwork','ggsignif','gghighlight',"hrbrthemes",
@@ -31,6 +37,22 @@ for(p in packages) {
   }
   library(p, character.only = T)
 }
+```
+
+```{r}
+exam <- read_csv("./data/Exam_data.csv")
+```
+
+# ANOVA test
+
+```{r}
+set.seed(1234)
+ggbetweenstats(
+  data = exam,
+  x = RACE,
+  y = ENGLISH,
+  type = "np" # non-parametrics
+)
 ```
 
 
