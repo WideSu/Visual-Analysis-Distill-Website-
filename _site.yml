@@ -31,4 +31,6 @@ navbar:
         href: th_ex/ic_ex1.html
       - text: "In-class Excercise2"
         href: https://public.tableau.com/app/profile/huang.anni/viz/In-class-exc2/Dashboard1?publish=yes
+      - text: "In-class Excercise4"
+        href: in_class_ex/in-class-ex-04.html
 output: distill::distill_article
