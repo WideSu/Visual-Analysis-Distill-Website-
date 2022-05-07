@@ -95,6 +95,7 @@ total$coef <- total$outcome/total$income
 
 participant_finance <- merge(participant_data, wage,by=c("participantId"))
 ```
+
 ```{r}
 d <- highlight_key(wage)
 p <- ggplot(data=d, aes(x=wage, fill=Wage_Group, y=Wage_Group)) +
