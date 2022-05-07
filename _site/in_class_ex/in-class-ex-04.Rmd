@@ -19,12 +19,12 @@ knitr::opts_chunk$set(echo = TRUE,
                       eval = TRUE,
                       warning = FALSE, 
                       message = FALSE,
-                      fig.retina = 100) # make it sharper
+                      fig.retina = 3) # make it sharper
 ```
 
 To start with, [ggstatsplot](https://indrajeetpatil.github.io/ggstatsplot/) and tidyverse packages will be launched using library().
 
-```{r}
+```{r load packages}
 packages = c('ggiraph', 'plotly', 'tidyverse', 'DT','gganimate',
              'knitr', 'ggdist', 'scales', 'grid', 'gridExtra',
              'patchwork','ggsignif','gghighlight',"hrbrthemes",
@@ -45,7 +45,7 @@ exam <- read_csv("./data/Exam_data.csv")
 
 # ANOVA test
 
-```{r}
+```{r, fig.width=8, fig.height=6}
 set.seed(1234)
 ggbetweenstats(
   data = exam,
