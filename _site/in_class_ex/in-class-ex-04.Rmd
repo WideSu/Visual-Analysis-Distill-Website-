@@ -1,5 +1,5 @@
 ---
-title: "Hands-on excercise 3"
+title: "Hands-on excercise 4"
 description: |
   A new article created using the Distill format.
 author:
@@ -18,7 +18,8 @@ output:
 knitr::opts_chunk$set(echo = TRUE,
                       eval = TRUE,
                       warning = FALSE, 
-                      message = FALSE)
+                      message = FALSE,
+                      fig.retina = 100) # make it sharper
 ```
 
 To start with, [ggstatsplot](https://indrajeetpatil.github.io/ggstatsplot/) and tidyverse packages will be launched using library().
@@ -40,6 +41,18 @@ for(p in packages) {
 
 ```{r}
 exam <- read_csv("./data/Exam_data.csv")
+```
+
+# ANOVA test
+
+```{r}
+set.seed(1234)
+ggbetweenstats(
+  data = exam,
+  x = RACE,
+  y = ENGLISH,
+  type = "np" # non-parametrics
+)
 ```
 
 
