@@ -1,0 +1,28 @@
+---
+title: "Hands-on excercise 3"
+description: |
+  A new article created using the Distill format.
+author:
+  - name: Huang Anni 
+    url: https://example.com/norajones
+    affiliation: "Singapore Management University"
+    affiliation_url: https://www.smu.edu.sg/
+date: "`r Sys.Date()`"
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+Distill is a publication format for scientific and technical writing, native to the web. 
+
+Learn more about using Distill for R Markdown at <https://rstudio.github.io/distill>.
+
+
+
+
+

@@ -25,3 +25,5 @@ Upcoming lectures and assignments: [click here](https://isss608-ay2021-22april.n
 - Week 3 DataPrep & TreeMap
   - [Hand-out 3](https://huanganni.netlify.app/th_ex/hd_3.html)
   - [Take-home excercise 3](https://huanganni.netlify.app/th_ex/th_ex3.html)
+- Week 4 Interactive plots
+  - [Hand-out 4](https://huanganni.netlify.app/in_class_ex/in-class-ex-04.html)
