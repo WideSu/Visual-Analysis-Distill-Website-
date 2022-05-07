@@ -33,7 +33,7 @@ packages = c('ggiraph', 'plotly', 'tidyverse', 'DT','gganimate',
              'knitr', 'ggdist', 'scales', 'grid', 'gridExtra',
              'patchwork','ggsignif','gghighlight',"hrbrthemes",
              'readxl', 'gifski', 'gapminder','treemap', 'treemapify',
-             'rPackedBar','ggridges')
+             'rPackedBar','ggridges','rmarkdown')
 print(length(packages))
 
 for(p in packages) {
@@ -50,6 +50,8 @@ library(ggplot2)
 financial <- read_csv('./data/FinancialJournal.csv')
 glimpse(financial)
 ```
+
+# Data Processing
 ```{r}
 y <- as.POSIXct(financial$timestamp, format="%Y-%m-%d %H:%M:%S")
 financial$year <- format(y, format="%Y")
@@ -67,19 +69,7 @@ outcome <- financial %>%
 total <- merge(income,outcome,by=c("year","month"))
 total$date <- paste(total$year, total$month, sep='-')
 total$coef <- total$outcome / total$income
-unique(total$date)
-library(rmarkdown)
-paged_table(financial, options = list(rows.print = 15, cols.print = 5))
-total$coef <- total$outcome/total$income
-```
-```{r}
-fig <- plot_ly(total, x = ~date, y = ~coef, type = 'scatter',mode = 'lines+markers')
-fig <- fig %>% layout(title = 'Fig 1.Residence\'s living status through time',
-                      xaxis = list(title = "Date"),
-                      yaxis = list (title = "Spend/Income"))
-fig
-```
-```{r}
+# unique(total$date)
 total$remain <- (total$income - total$outcome)
 total$remain <- round(total$remain, 1)
 wage <- financial %>%
@@ -89,6 +79,36 @@ wage <- financial %>%
 brks <- c(0, 100, 200, 300, 400, Inf)
 grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
 wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
+education <- financial %>%
+  filter(category == "Education") %>%
+  group_by(participantId) %>%
+  summarise(education_spend = mean(amount))
+
+brks <- c(0, 100, 200, 300, 400, Inf)
+grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
+wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
+# unique(wage$Wage_Group)
+paged_table(financial, options = list(rows.print = 15, cols.print = 5))
+total$coef <- total$outcome/total$income
+```
+```{r}
+p <- ggplot(data=wage, aes(x=wage, fill=Wage_Group, y=Wage_Group)) +
+    geom_histogram(position="dodge",aes(y = ..density..), binwidth=density(wage$wage)$bw) +
+  labs(y= 'Density', x= 'Wage',
+       title = "Fig3: Wage Distribution",
+       subtitle = "Most people get 50 per month")
+
+ggplotly(p)
+```
+
+```{r}
+fig <- plot_ly(total, x = ~date, y = ~coef, type = 'scatter',mode = 'lines+markers')
+fig <- fig %>% layout(title = 'Fig 1.Residence\'s living status through time',
+                      xaxis = list(title = "Date"),
+                      yaxis = list (title = "Spend/Income"))
+fig
+```
+```{r}
 p<-ggplot(data=total, aes(x=date, y=remain)) +
   geom_bar(stat = "identity", width = 0.5, fill="steelblue") +
   coord_cartesian(ylim = c(0, 160)) + 
@@ -112,7 +132,7 @@ wage <- financial %>%
 brks <- c(0, 100, 200, 300, 400, Inf)
 grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
 wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
-unique(wage$Wage_Group)
+# unique(wage$Wage_Group)
 #fig <- plot_ly(wage, x = ~wage, fill = ~Wage_Group ,type = "histogram")
 
 #fig
@@ -149,25 +169,6 @@ p <- ggplot(comparison, aes(x = ratio, y = Wage_Group)) +
 p
 ```
 
-```{r}
-education <- financial %>%
-  filter(category == "Education") %>%
-  group_by(participantId) %>%
-  summarise(education_spend = mean(amount))
-
-brks <- c(0, 100, 200, 300, 400, Inf)
-grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
-wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
-unique(wage$Wage_Group)
-
-p <- ggplot(data=wage, aes(x=wage, fill=Wage_Group, y=Wage_Group)) +
-    geom_histogram(position="dodge",aes(y = ..density..), binwidth=density(wage$wage)$bw) +
-  labs(y= 'Density', x= 'Wage',
-       title = "Fig3: Wage Distribution",
-       subtitle = "Most people get 50 per month")
-
-ggplotly(p)
-```
 
 ```{r}
 outcome_different_cats <- financial %>%
