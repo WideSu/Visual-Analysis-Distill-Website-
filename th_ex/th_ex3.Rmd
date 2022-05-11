@@ -11,7 +11,7 @@ output:
     toc_depth: 3
 ---
 
-# The task
+# The Task
 With reference to Challenge 3 of VAST Challenge 2022, you are required to reveal the economic of the city of Engagement, Ohio USA by using appropriate static and interactive statistical graphics methods
 
 
@@ -38,7 +38,8 @@ packages = c('ggiraph', 'plotly', 'tidyverse', 'DT','gganimate',
              'patchwork','ggsignif','gghighlight',"hrbrthemes",
              'readxl', 'gifski', 'gapminder','treemap', 'treemapify',
              'rPackedBar','ggridges','rmarkdown','crosstalk',
-             'd3scatter','tidycensus','timetk','ggseas','lubridate','ggrepel')
+             'd3scatter','tidycensus','timetk','ggseas','lubridate',
+             'ggrepel','GGally')
 
 for(p in packages) {
   if(!require(p, character.only = T)) {
@@ -325,10 +326,9 @@ p7 <- ggplot(data=wage_info, aes(x = wage, y = Age_Group, fill = 0.5 - abs(0.5 -
   coord_cartesian(clip = "off") + 
   theme_ridges(grid = FALSE, center_axis_labels = TRUE)+
   scale_fill_viridis_c(name = "Tail probability", direction = -1)+
-  ggtitle("Fig7. Distribution of wage with different Age Group")+
+  ggtitle("Fig7. Wage distribution of in different Age Group")+
   theme(plot.title = element_text(size = 12))
 p7
-rm(wage_info)
 rm(wage)
 rm(spending_monthly_cat)
 rm(monthly_income)
@@ -339,15 +339,51 @@ rm(cost_ratio)
 
 ## What are the spending habits of different people?
 
-
-
 ```{r}
 personal_spending_cat <- financial %>% 
   filter(!category %in% c('Wage', 'RentAdjustment')) %>%
   group_by(category, participantId) %>%
   summarise(spend_cat = - sum(amount)) 
+personal_spending_cat <- merge(personal_spending_cat, wage_info, by=c("participantId"))
 paged_table(personal_spending_cat, options = list(rows.print = 15, cols.print = 5))
 ```
+
+People who has high wage tend to spend less money on shelter and food.
+
+```{r}
+p8 <- ggplot(personal_spending_cat, aes(x=wage, y=spend_cat, fill=Wage_Group)) +
+  facet_grid(category~. , scale = 'free_y') +
+  geom_point(size=2, shape=23) +
+  scale_y_continuous(labels = dollar) +
+  stat_ellipse() +
+  labs(y= 'Spend', x= 'Wage',
+       title = "Fig8: Relatiobship between wage and spending for all the participants",
+       subtitle = "People who has high wage tend to spend less money")
+spending_cat_each_wage_group <- personal_spending_cat %>%
+  group_by(category,Wage_Group) %>%
+  summarise(spend_cat_mean = mean(spend_cat))
+
+p8
+```
+
+People with high education tend to spend more money on education and shelter.
+
+```{r}
+p9 <- ggplot(personal_spending_cat, aes(x=educationLevel, y=spend_cat)) +
+  facet_grid(category~. , scale = 'free_y') +
+  geom_violin() +
+  stat_summary(geom = "point",
+               fun="mean",
+               colour ="red",
+               size=2) +
+  stat_summary(aes(label = round(..y.., 0)), fun=mean, geom = "label_repel", size=3, angle=150) +
+  
+  labs(y= 'Wage', x= 'educationLevel',
+       title = "Fig9: Spending habit within each education level",
+       subtitle = "People with high education tend to spend more money on education and shelter")
+p9
+```
+
 
 
 
