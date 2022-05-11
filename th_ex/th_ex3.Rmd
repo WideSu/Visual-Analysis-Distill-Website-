@@ -32,13 +32,13 @@ This exercise requires us to apply the skills you had learned in Lesson 1 and Ha
 ![image](https://user-images.githubusercontent.com/44923423/166912984-6b798c62-f22e-4566-ac08-ad74e02af498.png)
 
   
-```{r include=FALSE}
+```{r}
 packages = c('ggiraph', 'plotly', 'tidyverse', 'DT','gganimate',
              'knitr', 'ggdist', 'scales', 'grid', 'gridExtra',
              'patchwork','ggsignif','gghighlight',"hrbrthemes",
              'readxl', 'gifski', 'gapminder','treemap', 'treemapify',
              'rPackedBar','ggridges','rmarkdown','crosstalk',
-             'd3scatter','tidycensus','timetk','ggseas','lubridate')
+             'd3scatter','tidycensus','timetk','ggseas','lubridate','ggrepel')
 
 for(p in packages) {
   if(!require(p, character.only = T)) {
@@ -51,6 +51,10 @@ for(p in packages) {
 ```{r load data, include=TRUE, preview=TRUE}
 financial <- read_csv('./data/FinancialJournal.csv')
 participant_data <- read_csv('./data/Participants.csv')
+participant_data$educationLevel<-factor(participant_data$educationLevel,ordered=TRUE,levels=c('Low','HighSchoolOrCollege',"Bachelors","Graduate"))
+brks <- c(17, 20, 30, 40, 50, 60, Inf)
+grps <- c('<=20', '21-30','31-40', '41-50', '51-60', '>60')
+participant_data$Age_Group <- cut(participant_data$age, breaks=brks, labels = grps, right = FALSE)
 glimpse(financial)
 ```
 
@@ -58,13 +62,16 @@ glimpse(financial)
 # Visual Analysis
 Our data includes two csv files from the VAST data source, namely FinancialJournal.csv and Participants.csv. To show the financial health of Ohio city, we derived three supporting tables from the original data. Generally, we want to ananlyze the **spending habits** and **wage status** of people with **different education background, age, and household size**.
 
-## The overview of income, spending, and remaining per month
+## Financial Health change over period
 
-- month_finance_status: the **mean income, spending, and remaining of each month** for all the participants.
+The overview of income, spending, and remaining per month
+
+### Supporting tables:
+
+- monthly_finance_status: the **total income, spending, and remaining of each month** for all the participants.
 
 ```{r data processing 1, include=TRUE, preview=TRUE}
 financial$DateTime <- as.POSIXct(financial$timestamp, format="%Y-%m-%d %H:%M:%S")
-financial <- financial %>% arrange(mdy(financial$DateTime))
 financial$year <- format(financial$DateTime, format="%Y")
 financial$month <- format(financial$DateTime, format="%m")
 financial$day <- format(financial$DateTime, format="%d")
@@ -88,19 +95,79 @@ monthly_finance_status$remain <- round(monthly_finance_status$remain, 1)
 monthly_finance_status <- monthly_finance_status[order(as.Date(monthly_finance_status$month, format="%m")),]
 paged_table(monthly_finance_status, options = list(rows.print = 15, cols.print = 5))
 ```
+- spending_monthly_cat: **total spending** of the residence on **each category per month**.
 
 ```{r}
 spending_monthly_cat <- financial %>% 
   filter(!category %in% c('Wage', 'RentAdjustment')) %>%
   group_by(month, category) %>%
   summarise(spend_cat = - sum(amount)) 
-paged_table(spending_monthly_cat, options = list(rows.print = 15, cols.print = 5))
+cost_ratio <- merge(spending_monthly_cat, monthly_finance_status, by=c("month"))
+cost_ratio$spend_cat_ratio = cost_ratio$spend_cat / cost_ratio$income
+paged_table(cost_ratio, options = list(rows.print = 15, cols.print = 5))
 ```
 
-As we can see, people spend more money in **April, March and May**.
+- income_monthly_cat: **sum of income** of the residence on **each category per month**.
 
 ```{r}
-p1 <- ggplot(data=spending_monthly_cat, aes(x=month,
+income_monthly_cat <- financial %>% 
+  filter(category %in% c('Wage', 'RentAdjustment')) %>%
+  group_by(month, category) %>%
+  summarise(income_cat = round(sum(amount),1))
+paged_table(income_monthly_cat, options = list(rows.print = 15, cols.print = 5))
+```
+
+
+### Spending overview
+
+As we can see, people spend more money in **Feb-June**.
+
+And most people **spend 30%-35%** of their **income per month**, and save the **70%**. And we can see that with the increase of income, people also spend more.
+
+```{r}
+p1 <- ggplot(data=monthly_finance_status, aes(x=month,
+                                          y= spendRatio,
+                                          group=1,
+                                          text = paste('</br>Month: ', month,
+                      '</br>Spend/Income: ', 100*round(spendRatio,4),"%"))) +
+  geom_point()+
+  geom_line(stat = "identity")+
+  geom_hline(yintercept=0.36, alpha = 0.3, linetype = 2) +
+  geom_hline(yintercept=0.316, alpha = 0.3, linetype = 2) +
+  labs(y= 'Spend/income ratio', x= 'Month',
+       title = "Fig 1.1 Spend/income (monthly)",
+       subtitle = "People spend 30%-35% of their income")
+    #geom_bar(position="dodge2", stat = "identity") 
+p2 <- ggplot(data=monthly_finance_status, aes(x=month,
+                                          y= spend,
+                                          group=1,
+                                          text = paste('</br>Month: ', month,
+                      '</br>Spend/Income: ', 100*round(spendRatio,4),"%"))) +
+  geom_point()+
+  geom_line(stat = "identity")+
+  scale_y_continuous(labels = dollar)+
+  labs(y= 'Spend/income ratio', x= 'Month',
+       title = "Fig 1.2 Spend (monthly)",
+       subtitle = "Most people spending surges in Mar-May")
+#ggplotly(p4,tooltip = "text")
+p3 <- ggplot(data=monthly_finance_status, aes(x=month,
+                                          y= income,
+                                          group=1,
+                                          text = paste('</br>Month: ', month,
+                      '</br>Spend/Income: ', 100*round(spendRatio,4),"%"))) +
+  geom_point()+
+  geom_line(stat = "identity")+
+  scale_y_continuous(labels = dollar)+
+  labs(y= 'Spend/income ratio', x= 'Month',
+       title = "Fig 1.3 Income (monthly)",
+       subtitle = "People's income surges in Mar-May")
+p1|(p2/p3)
+```
+
+From the bar plot of total spending by category per month below, we can infer that the significant rise in spending in **March-May** may result from the increase of **Shelter**. Except March-May, the spending on each category is stable through time.
+
+```{r}
+p2 <- ggplot(data=spending_monthly_cat, aes(x=month,
                                           y= spend_cat,
                                           color=category,
                                           fill = category,
@@ -113,38 +180,27 @@ p1 <- ggplot(data=spending_monthly_cat, aes(x=month,
   facet_wrap(~ category) + 
   scale_y_continuous(labels = dollar)+
   labs(y= 'Sum of spending', x= 'Month',
-       title = "Fig 1. Sum of spending by category (per month)",
-       subtitle = "Spending on shelter increase sharply in Feb-June")
+       title = "Fig 2. Sum of spending by category (per month)",
+       subtitle = "Spending on shelter increase sharply in March-May")
     #geom_bar(position="dodge2", stat = "identity") +
   # facet_grid(category~. )
-ggplotly(p1,tooltip="text")
-p2 <- ggplot(data=monthly_finance_status, aes(x=month,
-                                          y= spend,
-                                          group=1,
-                                          text = paste('</br>Month: ', month,
-                      '</br>Total spending: ', round(spend,0))
-                      )
-             )+
-  geom_bar(stat='identity')+
-  labs(y= 'Sum of spending', x= 'Month',
-       title = "Fig 2. Spending (per month)",
-       subtitle = "People spend more money in Feb-June")+
-  theme(axis.ticks.x= element_blank(),
-        #panel.background= element_blank(), 
-        #axis.line= element_line(color= 'grey'),
-        legend.position="top") +
-  scale_y_continuous(labels = dollar)
 ggplotly(p2,tooltip="text")
 ```
-````{r}
+
+And we can see that residents in Ohio spend nearly half of their spending on **Shelter**. 
+
+```{r}
 pie_data <- financial %>%
   filter(!category %in% c('Wage', 'RentAdjustment')) %>%
   group_by(category) %>%
   summarise(spend = sum(-amount))
 pie_data$fraction <- pie_data$spend / sum(pie_data$spend)
+
 pie_data <- pie_data %>% 
   arrange(fraction) %>%
   mutate(labels = paste0(category,'\n',scales::percent(fraction)))
+
+paged_table(pie_data, options = list(rows.print = 15, cols.print = 5))
 
 p3 <- ggplot(data=pie_data, aes(x="", y=fraction, fill=category)) +
   geom_bar(width=1, stat="identity") +
@@ -152,7 +208,7 @@ p3 <- ggplot(data=pie_data, aes(x="", y=fraction, fill=category)) +
             position = position_stack(vjust = 0.5)) +
   labs(y= 'Fraction of spending', x= 'Month',
        title = "Fig 3. Fraction of spending by category(total)",
-       subtitle = "Most people spend most of their money on 'Shelter'")+
+       subtitle = "The largest part of spending is for 'Shelter'")+
   coord_polar("y", start=0) +
   theme(axis.title.x=element_blank(),
         axis.text.x=element_blank(),
@@ -160,25 +216,58 @@ p3 <- ggplot(data=pie_data, aes(x="", y=fraction, fill=category)) +
         axis.title.y=element_blank())
 p3
 ```
+
+Here is the line plot for the relative cost per category comparing to the participants' income. As we can see, people spend **a relatively low portion of their income in education**, while spend **large portions on shelter, food and recreation **.
+
+And we can see a trend that people are spending more on food, less on other categories.
+
 ```{r}
-p4 <- ggplot(data=monthly_finance_status, aes(x=month,
-                                          y= spendRatio,
-                                          group=1,
-                                          text = paste('</br>Month: ', month,
-                      '</br>Spending ratio: ', 100*round(spendRatio,4),"%"))) +
+p4<-ggplot(data=cost_ratio, aes(x=month,
+                            y= spend_cat_ratio,
+                            group=category,
+                            color=category,
+                            text = paste(
+                              '</br>Category: ', category,
+                              '</br>Month: ', month,
+                              '</br>Ratio in Income: ', 100*round(spend_cat_ratio,4),"%"))) +
   geom_point()+
   geom_line(stat = "identity")+
-  geom_hline(yintercept=0.36, alpha = 0.3, linetype = 2) +
-  geom_hline(yintercept=0.316, alpha = 0.3, linetype = 2) +
-  labs(y= 'Ratio of spending in income', x= 'Month',
-       title = "Fig 4. Ratio of spending in income (monthly)",
-       subtitle = "Spending ratio fractuate around 0.3-0.35 through time")
+  geom_smooth(method = "loess", se = FALSE) +
+  facet_wrap(~ category, scales = "free_y") +
+  labs(y= 'Spend/income ratio', x= 'Month',
+       title = "Fig 4. Spend/income trend by category (monthly)",
+       subtitle = "")
     #geom_bar(position="dodge2", stat = "identity") 
-ggplotly(p4,tooltip = "text")
+ggplotly(p4,tooltip="text")
 ```
+
+### Income overview
+
+The income of participants consists of two parts, namely Wage and RentAdjustment. We can see that most of their income is wage. Only a small portion is from RentAdjustment in March.
+
+```{r}
+p5 <- ggplot(data=income_monthly_cat, aes(x=month,
+                                          y= income_cat,
+                                          group=category,
+                                          fill = category,
+                                          text = paste('</br>Category: ', category,
+                              '</br>Month: ', month,
+                              '</br>Income: ', income_cat
+                              )))+
+  guides(fill = "none") + 
+  geom_bar(stat='identity')+
+  scale_y_continuous(labels = dollar)+
+  labs(y= 'Sum of income', x= 'Month',
+       title = "Fig 5. Sum of income by category (per month)",
+       subtitle = "Spending on shelter increase sharply in March-May")
+    #geom_bar(position="dodge2", stat = "identity") +
+  # facet_grid(category~. )
+ggplotly(p5,tooltip="text")
+```
+
 ## What is affecting the wage?
 
-- participant_finance: we grouped people into 5 wage groups, which are '<=100', '101-200', '201-300', '301-400', '>400' to analyse their spending habits separately.
+- wage_info: we grouped people into 5 wage groups, which are '<=100', '101-200', '201-300', '301-400', '>400' to analyse their background and spending habits separately.
 
 ```{r data processing 2, include=TRUE, preview=TRUE}
 wage <- financial %>%
@@ -191,72 +280,84 @@ wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
 wage <- financial %>%
   filter(category == 'Wage') %>%
   group_by(participantId) %>%
-  summarise(wage = round(mean(amount)),0)
+  summarise(wage = round(mean(amount),0))
 brks <- c(0, 100, 200, 300, 400, Inf)
 grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
 wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
 wage_info <- merge(wage, participant_data, by=c("participantId"))
 
-glimpse(wage_info)
+paged_table(wage_info, options = list(rows.print = 15, cols.print = 5))
 ```
+
+Most people People with higher education have a higher mean salary.
+
 ```{r}
-d <- highlight_key(wage_info)
-p1 <- ggplot(data=d, aes(x=wage,fill=Wage_Group)) +
-    geom_histogram(position="dodge", binwidth=density(wage$wage)$bw) +
-  labs(y= 'No. People', x= 'Wage',
-       title = "Fig1: Wage Distribution",
-       subtitle = "Most people get 58 per month")
-p2 <- ggplot(data=d, aes(x=wage)) +
-    geom_histogram(position="dodge",aes(y = ..density..), binwidth=density(wage$wage)$bw) +
-  labs(y= 'Density', x= 'Wage',
-       title = "Fig5: Wage Distribution",
+p6 <- ggplot(data=wage_info, aes(x = educationLevel, 
+                                 y = wage))+
+    geom_boxplot(position="dodge",aes(x = educationLevel, y = wage)) +
+  stat_summary(geom = "point",
+               fun="mean",
+               colour ="red",
+               size=2) +
+  geom_hline(yintercept=173.38, alpha = 0.3, linetype = 2) +
+  # stat_summary(aes(label = round(..y.., 0)), fun=mean, geom = "label_repel", size=3, angle=150) +
+  
+  labs(y= 'Wage', x= 'educationLevel',
+       title = "Fig6: Wage Distribution by Education Level",
        subtitle = "Most people get 50 per month")
 
-ggplotly(p1)
+ggplotly(p6)
+```
+But age doesn't influence wage much
+
+```{r}
+p7 <- ggplot(data=wage_info, aes(x = wage, y = Age_Group, fill = 0.5 - abs(0.5 - stat(ecdf)))) +
+  stat_density_ridges(
+    geom = "density_ridges_gradient", 
+    calc_ecdf = TRUE,
+    jittered_points = TRUE, quantile_lines = TRUE, scale = 0.9, alpha = 0.7,
+    vline_size = 1, vline_color = "red",
+    point_size = 0.4, point_alpha = 1,
+    position = position_raincloud(adjust_vlines = TRUE)
+    ) +
+  scale_x_continuous(expand = c(0, 0)) +
+  scale_y_discrete(expand = expand_scale(mult = c(0, 0))) +
+  coord_cartesian(clip = "off") + 
+  theme_ridges(grid = FALSE, center_axis_labels = TRUE)+
+  scale_fill_viridis_c(name = "Tail probability", direction = -1)+
+  ggtitle("Fig7. Distribution of wage with different Age Group")+
+  theme(plot.title = element_text(size = 12))
+p7
 ```
 
 ## What are the spending habits of different people?
 
-Participants's wage and personal information.
 
-```{r data processing, include=TRUE, preview=TRUE}
-wage <- financial %>%
-  filter(category == "Wage") %>%
-  group_by(participantId) %>%
-  summarise(wage = mean(amount))
-brks <- c(0, 100, 200, 300, 400, Inf)
-grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
-wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
-wage <- financial %>%
-  filter(category == 'Wage') %>%
-  group_by(participantId) %>%
-  summarise(wage = mean(amount))
-brks <- c(0, 100, 200, 300, 400, Inf)
-grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
-wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
-#glimpse(wage)
 
-brks <- c(0, 100, 200, 300, 400, Inf)
-grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
-wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
-# unique(wage$Wage_Group)
-paged_table(financial, options = list(rows.print = 15, cols.print = 5))
-
-month_consum <- financial %>%
-  filter(!category %in% c('RentAdjustment', 'Wage')) %>%
-  group_by(year, month, category) %>%
-  summarise(spend = sum(-amount))
-#glimpse(month_consum)
-
-p_consum <- financial %>%
-  filter(!category %in% c('RentAdjustment', 'Wage')) %>%
-  group_by(participantId, category) %>%
-  summarise(spend = sum(-amount))
-#glimpse(p_consum)
-
-participant_finance <- merge(participant_data, wage,by=c("participantId"))
-#glimpse(participant_finance)
+```{r}
+personal_spending_monthly_cat <- financial %>% 
+  filter(!category %in% c('Wage', 'RentAdjustment')) %>%
+  group_by(month, category, participantId) %>%
+  summarise(spend_cat = - sum(amount)) 
+personal_monthly_income <- financial %>%
+  filter(category %in% c('Wage', 'RentAdjustment')) %>%
+  group_by(month,participantId) %>%
+  summarise(income = sum(amount))
+personal_monthly_spend <- financial %>%
+  filter(!category %in% c('Wage', 'RentAdjustment')) %>%
+  group_by(month,participantId) %>%
+  summarise(spend = sum(abs(amount)))
+personal_monthly_finance_status <- merge(personal_monthly_income,personal_monthly_spend,by=c("month"))
+personal_monthly_finance_status$spendRatio <- personal_monthly_finance_status$spend / personal_monthly_finance_status$income
+personal_monthly_finance_status$remain <- (personal_monthly_finance_status$income - personal_monthly_finance_status$spend)
+personal_monthly_finance_status$remain <- round(personal_monthly_finance_status$remain, 1)
+personal_monthly_finance_status <- personal_monthly_finance_status[order(as.Date(personal_monthly_finance_status$month, format="%m")),]
+paged_table(personal_monthly_finance_status, options = list(rows.print = 15, cols.print = 5))
+personal_cost_ratio <- merge(personal_spending_monthly_cat, personal_monthly_finance_status, by=c("month"))
+personal_cost_ratio$spend_cat_ratio = personal_cost_ratio$spend_cat / personal_cost_ratio$income
+paged_table(personal_cost_ratio, options = list(rows.print = 15, cols.print = 5))
 ```
+
 
 
 
