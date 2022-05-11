@@ -55,7 +55,7 @@ glimpse(financial)
 ```
 
 
-# Data Processing
+# Visual Analysis
 Our data includes two csv files from the VAST data source, namely FinancialJournal.csv and Participants.csv. To show the financial health of Ohio city, we derived three supporting tables from the original data. Generally, we want to ananlyze the **spending habits** and **wage status** of people with **different education background, age, and household size**.
 
 ## The overview of income, spending, and remaining per month
@@ -117,7 +117,7 @@ p1 <- ggplot(data=spending_monthly_cat, aes(x=month,
        subtitle = "Spending on shelter increase sharply in Feb-June")
     #geom_bar(position="dodge2", stat = "identity") +
   # facet_grid(category~. )
-p1
+ggplotly(p1,tooltip="text")
 p2 <- ggplot(data=monthly_finance_status, aes(x=month,
                                           y= spend,
                                           group=1,
@@ -127,15 +127,14 @@ p2 <- ggplot(data=monthly_finance_status, aes(x=month,
              )+
   geom_bar(stat='identity')+
   labs(y= 'Sum of spending', x= 'Month',
-       title = "Fig 1. Spending (per month)",
+       title = "Fig 2. Spending (per month)",
        subtitle = "People spend more money in Feb-June")+
   theme(axis.ticks.x= element_blank(),
         #panel.background= element_blank(), 
         #axis.line= element_line(color= 'grey'),
         legend.position="top") +
   scale_y_continuous(labels = dollar)
-subplot(ggplotly(p1,tooltip="text"),
-        ggplotly(p2,tooltip="text"))
+ggplotly(p2,tooltip="text")
 ```
 ````{r}
 pie_data <- financial %>%
@@ -196,10 +195,12 @@ wage <- financial %>%
 brks <- c(0, 100, 200, 300, 400, Inf)
 grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
 wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
-glimpse(wage)
+wage_info <- merge(wage, participant_data, by=c("participantId"))
+
+glimpse(wage_info)
 ```
 ```{r}
-d <- highlight_key(wage)
+d <- highlight_key(wage_info)
 p1 <- ggplot(data=d, aes(x=wage,fill=Wage_Group)) +
     geom_histogram(position="dodge", binwidth=density(wage$wage)$bw) +
   labs(y= 'No. People', x= 'Wage',
@@ -208,7 +209,7 @@ p1 <- ggplot(data=d, aes(x=wage,fill=Wage_Group)) +
 p2 <- ggplot(data=d, aes(x=wage)) +
     geom_histogram(position="dodge",aes(y = ..density..), binwidth=density(wage$wage)$bw) +
   labs(y= 'Density', x= 'Wage',
-       title = "Fig1: Wage Distribution",
+       title = "Fig5: Wage Distribution",
        subtitle = "Most people get 50 per month")
 
 ggplotly(p1)
