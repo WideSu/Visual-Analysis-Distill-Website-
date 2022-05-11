@@ -37,7 +37,8 @@ packages = c('ggiraph', 'plotly', 'tidyverse', 'DT','gganimate',
              'knitr', 'ggdist', 'scales', 'grid', 'gridExtra',
              'patchwork','ggsignif','gghighlight',"hrbrthemes",
              'readxl', 'gifski', 'gapminder','treemap', 'treemapify',
-             'rPackedBar','ggridges','rmarkdown','crosstalk','d3scatter','tidycensus')
+             'rPackedBar','ggridges','rmarkdown','crosstalk',
+             'd3scatter','tidycensus','timetk','ggseas','lubridate')
 
 for(p in packages) {
   if(!require(p, character.only = T)) {
@@ -50,47 +51,9 @@ for(p in packages) {
 ```{r load data, include=TRUE, preview=TRUE}
 financial <- read_csv('./data/FinancialJournal.csv')
 participant_data <- read_csv('./data/Participants.csv')
-financial$DateTime <- as.POSIXct(financial$timestamp, format="%Y-%m-%d %H:%M:%S")
-financial$year <- format(financial$DateTime, format="%Y")
-financial$month <- format(financial$DateTime, format="%m")
-financial$hour <- format(financial$DateTime, format="%H")
-
-spending_ts_cat <- financial %>% 
-  group_by(month,category) %>%
-  filter(!category %in% c('Wage', 'RentAdjustment')) %>%
-  summarise(mean_amount = - mean(amount)) 
-
-spending_ts_total <- financial %>% 
-  group_by(month) %>%
-  filter(!category %in% c('Wage', 'RentAdjustment')) %>%
-  summarise(mean_amount = - mean(amount)) 
-glimpse(spending_ts_total)
+glimpse(financial)
 ```
 
-```{r}
-p1 <- ggplot(data=spending_ts_cat, aes(x=month,
-                                          y= mean_amount,
-                                          color=category,
-                                          group=category,
-                                          text = paste('</br>Month: ', month,
-                      '</br>Mean spending: ', round(mean_amount,2),
-                      '</br>Category: ', category))) +
-  geom_line()+
-    #geom_bar(position="dodge2", stat = "identity") +
-  facet_grid(category~. , scales = "free_y",space = "free")
-p2 <- ggplot(data=spending_ts_total, aes(x=month,
-                                          y= mean_amount,
-                                          group=1,
-                                          text = paste('</br>Month: ', month,
-                      '</br>Mean spending: ', round(mean_amount,2)
-                      )
-                      )
-             )+
-  geom_line()
-ggplotly(p1,tooltip = "text")
-ggplotly(p2,tooltip = "text")
-
-```
 
 # Data Processing
 Our data includes two csv files from the VAST data source, namely FinancialJournal.csv and Participants.csv. To show the financial health of Ohio city, we derived three supporting tables from the original data. Generally, we want to ananlyze the **spending habits** and **wage status** of people with **different education background, age, and household size**.
@@ -100,21 +63,120 @@ Our data includes two csv files from the VAST data source, namely FinancialJourn
 - month_finance_status: the **mean income, spending, and remaining of each month** for all the participants.
 
 ```{r data processing 1, include=TRUE, preview=TRUE}
+financial$DateTime <- as.POSIXct(financial$timestamp, format="%Y-%m-%d %H:%M:%S")
+financial <- financial %>% arrange(mdy(financial$DateTime))
+financial$year <- format(financial$DateTime, format="%Y")
+financial$month <- format(financial$DateTime, format="%m")
+financial$day <- format(financial$DateTime, format="%d")
+financial$hour <- format(financial$DateTime, format="%H")
+financial$minute <- format(financial$DateTime, format="%M")
+financial$second <- format(financial$DateTime, format="%S")
+financial$date <- format(financial$DateTime, format="%Y %b")
+
 monthly_income <- financial %>%
   filter(category %in% c('Wage', 'RentAdjustment')) %>%
-  group_by(year, month) %>%
-  summarise(income = mean(amount))
+  group_by(month) %>%
+  summarise(income = sum(amount))
 monthly_spend <- financial %>%
   filter(!category %in% c('Wage', 'RentAdjustment')) %>%
-  group_by(year, month) %>%
-  summarise(spend = mean(abs(amount)))
-monthly_finance_status <- merge(monthly_income,monthly_spend,by=c("year","month"))
-monthly_finance_status$date <- paste(monthly_finance_status$year, monthly_finance_status$month, sep='-')
+  group_by(month) %>%
+  summarise(spend = sum(abs(amount)))
+monthly_finance_status <- merge(monthly_income,monthly_spend,by=c("month"))
 monthly_finance_status$spendRatio <- monthly_finance_status$spend / monthly_finance_status$income
 monthly_finance_status$remain <- (monthly_finance_status$income - monthly_finance_status$spend)
 monthly_finance_status$remain <- round(monthly_finance_status$remain, 1)
+monthly_finance_status <- monthly_finance_status[order(as.Date(monthly_finance_status$month, format="%m")),]
+paged_table(monthly_finance_status, options = list(rows.print = 15, cols.print = 5))
 ```
 
+```{r}
+spending_monthly_cat <- financial %>% 
+  filter(!category %in% c('Wage', 'RentAdjustment')) %>%
+  group_by(month, category) %>%
+  summarise(spend_cat = - sum(amount)) 
+paged_table(spending_monthly_cat, options = list(rows.print = 15, cols.print = 5))
+```
+
+As we can see, people spend more money in **April, March and May**.
+
+```{r}
+p1 <- ggplot(data=spending_monthly_cat, aes(x=month,
+                                          y= spend_cat,
+                                          color=category,
+                                          fill = category,
+                                          group=category,
+                                          text = paste('</br>Month: ', month,
+                      '</br>Spending: ', round(spend_cat,0),
+                      '</br>Category: ', category))) +
+  guides(fill = "none") + 
+  geom_bar(stat='identity')+
+  facet_wrap(~ category) + 
+  scale_y_continuous(labels = dollar)+
+  labs(y= 'Sum of spending', x= 'Month',
+       title = "Fig 1. Sum of spending by category (per month)",
+       subtitle = "Spending on shelter increase sharply in Feb-June")
+    #geom_bar(position="dodge2", stat = "identity") +
+  # facet_grid(category~. )
+p1
+p2 <- ggplot(data=monthly_finance_status, aes(x=month,
+                                          y= spend,
+                                          group=1,
+                                          text = paste('</br>Month: ', month,
+                      '</br>Total spending: ', round(spend,0))
+                      )
+             )+
+  geom_bar(stat='identity')+
+  labs(y= 'Sum of spending', x= 'Month',
+       title = "Fig 1. Spending (per month)",
+       subtitle = "People spend more money in Feb-June")+
+  theme(axis.ticks.x= element_blank(),
+        #panel.background= element_blank(), 
+        #axis.line= element_line(color= 'grey'),
+        legend.position="top") +
+  scale_y_continuous(labels = dollar)
+subplot(ggplotly(p1,tooltip="text"),
+        ggplotly(p2,tooltip="text"))
+```
+````{r}
+pie_data <- financial %>%
+  filter(!category %in% c('Wage', 'RentAdjustment')) %>%
+  group_by(category) %>%
+  summarise(spend = sum(-amount))
+pie_data$fraction <- pie_data$spend / sum(pie_data$spend)
+pie_data <- pie_data %>% 
+  arrange(fraction) %>%
+  mutate(labels = paste0(category,'\n',scales::percent(fraction)))
+
+p3 <- ggplot(data=pie_data, aes(x="", y=fraction, fill=category)) +
+  geom_bar(width=1, stat="identity") +
+  geom_text(aes(label = labels),
+            position = position_stack(vjust = 0.5)) +
+  labs(y= 'Fraction of spending', x= 'Month',
+       title = "Fig 3. Fraction of spending by category(total)",
+       subtitle = "Most people spend most of their money on 'Shelter'")+
+  coord_polar("y", start=0) +
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank(),
+        axis.title.y=element_blank())
+p3
+```
+```{r}
+p4 <- ggplot(data=monthly_finance_status, aes(x=month,
+                                          y= spendRatio,
+                                          group=1,
+                                          text = paste('</br>Month: ', month,
+                      '</br>Spending ratio: ', 100*round(spendRatio,4),"%"))) +
+  geom_point()+
+  geom_line(stat = "identity")+
+  geom_hline(yintercept=0.36, alpha = 0.3, linetype = 2) +
+  geom_hline(yintercept=0.316, alpha = 0.3, linetype = 2) +
+  labs(y= 'Ratio of spending in income', x= 'Month',
+       title = "Fig 4. Ratio of spending in income (monthly)",
+       subtitle = "Spending ratio fractuate around 0.3-0.35 through time")
+    #geom_bar(position="dodge2", stat = "identity") 
+ggplotly(p4,tooltip = "text")
+```
 ## What is affecting the wage?
 
 - participant_finance: we grouped people into 5 wage groups, which are '<=100', '101-200', '201-300', '301-400', '>400' to analyse their spending habits separately.
@@ -134,7 +196,22 @@ wage <- financial %>%
 brks <- c(0, 100, 200, 300, 400, Inf)
 grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
 wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
-#glimpse(wage)
+glimpse(wage)
+```
+```{r}
+d <- highlight_key(wage)
+p1 <- ggplot(data=d, aes(x=wage,fill=Wage_Group)) +
+    geom_histogram(position="dodge", binwidth=density(wage$wage)$bw) +
+  labs(y= 'No. People', x= 'Wage',
+       title = "Fig1: Wage Distribution",
+       subtitle = "Most people get 58 per month")
+p2 <- ggplot(data=d, aes(x=wage)) +
+    geom_histogram(position="dodge",aes(y = ..density..), binwidth=density(wage$wage)$bw) +
+  labs(y= 'Density', x= 'Wage',
+       title = "Fig1: Wage Distribution",
+       subtitle = "Most people get 50 per month")
+
+ggplotly(p1)
 ```
 
 ## What are the spending habits of different people?
@@ -180,19 +257,5 @@ participant_finance <- merge(participant_data, wage,by=c("participantId"))
 #glimpse(participant_finance)
 ```
 
-```{r}
-d <- highlight_key(wage)
-p1 <- ggplot(data=d, aes(x=wage,fill=Wage_Group)) +
-    geom_histogram(position="dodge", binwidth=density(wage$wage)$bw) +
-  labs(y= 'No. People', x= 'Wage',
-       title = "Fig1: Wage Distribution",
-       subtitle = "Most people get 58 per month")
-p2 <- ggplot(data=d, aes(x=wage)) +
-    geom_histogram(position="dodge",aes(y = ..density..), binwidth=density(wage$wage)$bw) +
-  labs(y= 'Density', x= 'Wage',
-       title = "Fig1: Wage Distribution",
-       subtitle = "Most people get 50 per month")
 
-ggplotly(p1)
-```
 
