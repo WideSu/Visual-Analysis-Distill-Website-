@@ -328,6 +328,13 @@ p7 <- ggplot(data=wage_info, aes(x = wage, y = Age_Group, fill = 0.5 - abs(0.5 -
   ggtitle("Fig7. Distribution of wage with different Age Group")+
   theme(plot.title = element_text(size = 12))
 p7
+rm(wage_info)
+rm(wage)
+rm(spending_monthly_cat)
+rm(monthly_income)
+rm(monthly_finance_status)
+rm(income_monthly_cat)
+rm(cost_ratio)
 ```
 
 ## What are the spending habits of different people?
@@ -335,27 +342,11 @@ p7
 
 
 ```{r}
-personal_spending_monthly_cat <- financial %>% 
+personal_spending_cat <- financial %>% 
   filter(!category %in% c('Wage', 'RentAdjustment')) %>%
-  group_by(month, category, participantId) %>%
+  group_by(category, participantId) %>%
   summarise(spend_cat = - sum(amount)) 
-personal_monthly_income <- financial %>%
-  filter(category %in% c('Wage', 'RentAdjustment')) %>%
-  group_by(month,participantId) %>%
-  summarise(income = sum(amount))
-personal_monthly_spend <- financial %>%
-  filter(!category %in% c('Wage', 'RentAdjustment')) %>%
-  group_by(month,participantId) %>%
-  summarise(spend = sum(abs(amount)))
-personal_monthly_finance_status <- merge(personal_monthly_income,personal_monthly_spend,by=c("month"))
-personal_monthly_finance_status$spendRatio <- personal_monthly_finance_status$spend / personal_monthly_finance_status$income
-personal_monthly_finance_status$remain <- (personal_monthly_finance_status$income - personal_monthly_finance_status$spend)
-personal_monthly_finance_status$remain <- round(personal_monthly_finance_status$remain, 1)
-personal_monthly_finance_status <- personal_monthly_finance_status[order(as.Date(personal_monthly_finance_status$month, format="%m")),]
-paged_table(personal_monthly_finance_status, options = list(rows.print = 15, cols.print = 5))
-personal_cost_ratio <- merge(personal_spending_monthly_cat, personal_monthly_finance_status, by=c("month"))
-personal_cost_ratio$spend_cat_ratio = personal_cost_ratio$spend_cat / personal_cost_ratio$income
-paged_table(personal_cost_ratio, options = list(rows.print = 15, cols.print = 5))
+paged_table(personal_spending_cat, options = list(rows.print = 15, cols.print = 5))
 ```
 
 
