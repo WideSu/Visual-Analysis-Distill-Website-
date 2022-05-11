@@ -16,6 +16,10 @@ With reference to Challenge 3 of VAST Challenge 2022, you are required to reveal
 
 
 ```{r setup, include=FALSE}
+#devtools::install_github("rstudio/crosstalk")
+#devtools::install_github("jcheng5/d3scatter")
+#devtools::install_github("rstudio/leaflet")
+
 knitr::opts_chunk$set(echo = TRUE,
                       eval = TRUE,
                       warning = FALSE, 
@@ -33,7 +37,7 @@ packages = c('ggiraph', 'plotly', 'tidyverse', 'DT','gganimate',
              'knitr', 'ggdist', 'scales', 'grid', 'gridExtra',
              'patchwork','ggsignif','gghighlight',"hrbrthemes",
              'readxl', 'gifski', 'gapminder','treemap', 'treemapify',
-             'rPackedBar','ggridges','rmarkdown')
+             'rPackedBar','ggridges','rmarkdown','crosstalk','d3scatter','tidycensus')
 
 for(p in packages) {
   if(!require(p, character.only = T)) {
@@ -43,36 +47,100 @@ for(p in packages) {
 }
 ```
 
-```{r load data, include=FALSE, preview=TRUE}
-library(tidyverse)
-library(ggplot2)
+```{r load data, include=TRUE, preview=TRUE}
 financial <- read_csv('./data/FinancialJournal.csv')
 participant_data <- read_csv('./data/Participants.csv')
-# glimpse(financial)
+financial$DateTime <- as.POSIXct(financial$timestamp, format="%Y-%m-%d %H:%M:%S")
+financial$year <- format(financial$DateTime, format="%Y")
+financial$month <- format(financial$DateTime, format="%m")
+financial$hour <- format(financial$DateTime, format="%H")
+spending_ts_cat <- financial %>% 
+  group_by(DateTime,category) %>%
+  filter(!category %in% c('Wage', 'RentAdjustment')) %>%
+  summarise(mean_amount = - mean(amount)) 
+
+spending_ts_total <- financial %>% 
+  group_by(DateTime) %>%
+  filter(!category %in% c('Wage', 'RentAdjustment')) %>%
+  summarise(mean_amount = - mean(amount)) 
+glimpse(spending_ts_total)
+```
+
+```{r}
+p1 <- ggplot(data=spending_ts_cat, aes(x=DateTime,
+                                          y= mean_amount,
+                                          fill=category,
+                                          group=category,
+                                          text = paste('</br>DateTime: ', DateTime,
+                      '</br>Mean spending: ', round(mean_amount,2),
+                      '</br>Category: ', category))) +
+  geom_point() +
+  geom_line()+
+    #geom_bar(position="dodge2", stat = "identity") +
+  facet_grid(category~. , scales = "free_y",space = "free")
+p2 <- ggplot(data=spending_ts_total, aes(x=DateTime,
+                                          y= mean_amount,
+                                          group=1,
+                                          text = paste('</br>DateTime: ', DateTime,
+                      '</br>Mean spending: ', round(mean_amount,2)
+                      )
+                      )
+             )+
+  geom_point() +
+  geom_line()
+    #geom_bar(position="dodge2", stat = "identity")
+subplot(ggplotly(p1,tooltip = "text"),
+        ggplotly(p2,
+        tooltip = "text"))
+```
+
+```{r}
+#> `summarise()` ungrouping output (override with `.groups` argument)
+fig <- plot_ly(financial, type = 'scatter', mode = 'lines')%>%
+  add_trace(x = ~new_tms, y = ~amount, color= ~category)%>%
+  layout(showlegend = F, title='Time Series with Rangeslider',
+         xaxis = list(rangeslider = list(visible = T)))
+fig <- fig %>%
+  layout(
+         xaxis = list(zerolinecolor = '#ffff',
+                      zerolinewidth = 2,
+                      gridcolor = 'ffff'),
+         yaxis = list(zerolinecolor = '#ffff',
+                      zerolinewidth = 2,
+                      gridcolor = 'ffff'),
+         plot_bgcolor='#e5ecf6', width = 900)
+
+fig
 ```
 
 # Data Processing
-Our data includes two csv files from the VAST data source.
+Our data includes two csv files from the VAST data source, namely FinancialJournal.csv and Participants.csv. To show the financial health of Ohio city, we derived three supporting tables from the original data. Generally, we want to ananlyze the **spending habits** and **wage status** of people with **different education background, age, and household size**.
 
-```{r data processing, include=FALSE, preview=TRUE}
-y <- as.POSIXct(financial$timestamp, format="%Y-%m-%d %H:%M:%S")
-financial$year <- format(y, format="%Y")
-financial$month <- format(y, format="%m")
-income <- financial %>%
+## The overview of income, spending, and remaining per month
+
+- month_finance_status: the **mean income, spending, and remaining of each month** for all the participants.
+
+```{r data processing 1, include=TRUE, preview=TRUE}
+monthly_income <- financial %>%
   filter(category %in% c('Wage', 'RentAdjustment')) %>%
   group_by(year, month) %>%
   summarise(income = mean(amount))
-
-outcome <- financial %>%
+monthly_spend <- financial %>%
   filter(!category %in% c('Wage', 'RentAdjustment')) %>%
   group_by(year, month) %>%
-  summarise(outcome = mean(abs(amount)))
-total <- merge(income,outcome,by=c("year","month"))
-total$date <- paste(total$year, total$month, sep='-')
-total$coef <- total$outcome / total$income
-# unique(total$date)
-total$remain <- (total$income - total$outcome)
-total$remain <- round(total$remain, 1)
+  summarise(spend = mean(abs(amount)))
+monthly_finance_status <- merge(monthly_income,monthly_spend,by=c("year","month"))
+monthly_finance_status$date <- paste(monthly_finance_status$year, monthly_finance_status$month, sep='-')
+monthly_finance_status$spendRatio <- monthly_finance_status$spend / monthly_finance_status$income
+monthly_finance_status$remain <- (monthly_finance_status$income - monthly_finance_status$spend)
+monthly_finance_status$remain <- round(monthly_finance_status$remain, 1)
+```
+
+## What is affecting the wage?
+
+- participant_finance: we grouped people into 5 wage groups, which are '<=100', '101-200', '201-300', '301-400', '>400' to analyse their spending habits separately.
+
+```{r data processing 2, include=TRUE, preview=TRUE}
 wage <- financial %>%
   filter(category == "Wage") %>%
   group_by(participantId) %>%
@@ -87,115 +155,65 @@ wage <- financial %>%
 brks <- c(0, 100, 200, 300, 400, Inf)
 grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
 wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
-education <- financial %>%
-  filter(category == "Education") %>%
-  group_by(participantId) %>%
-  summarise(education_spend = mean(amount))
+#glimpse(wage)
+```
 
+## What are the spending habits of different people?
+
+Participants's wage and personal information.
+
+```{r data processing, include=TRUE, preview=TRUE}
+wage <- financial %>%
+  filter(category == "Wage") %>%
+  group_by(participantId) %>%
+  summarise(wage = mean(amount))
+brks <- c(0, 100, 200, 300, 400, Inf)
+grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
+wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
+wage <- financial %>%
+  filter(category == 'Wage') %>%
+  group_by(participantId) %>%
+  summarise(wage = mean(amount))
+brks <- c(0, 100, 200, 300, 400, Inf)
+grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
+wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
+#glimpse(wage)
 
 brks <- c(0, 100, 200, 300, 400, Inf)
 grps <- c('<=100', '101-200', '201-300', '301-400', '>400')
 wage$Wage_Group <- cut(wage$wage, breaks=brks, labels = grps, right = FALSE)
 # unique(wage$Wage_Group)
 paged_table(financial, options = list(rows.print = 15, cols.print = 5))
-total$coef <- total$outcome/total$income
 
+month_consum <- financial %>%
+  filter(!category %in% c('RentAdjustment', 'Wage')) %>%
+  group_by(year, month, category) %>%
+  summarise(spend = sum(-amount))
+#glimpse(month_consum)
+
+p_consum <- financial %>%
+  filter(!category %in% c('RentAdjustment', 'Wage')) %>%
+  group_by(participantId, category) %>%
+  summarise(spend = sum(-amount))
+#glimpse(p_consum)
 
 participant_finance <- merge(participant_data, wage,by=c("participantId"))
+#glimpse(participant_finance)
 ```
 
 ```{r}
 d <- highlight_key(wage)
-p <- ggplot(data=d, aes(x=wage, fill=Wage_Group)) +
+p1 <- ggplot(data=d, aes(x=wage,fill=Wage_Group)) +
+    geom_histogram(position="dodge", binwidth=density(wage$wage)$bw) +
+  labs(y= 'No. People', x= 'Wage',
+       title = "Fig1: Wage Distribution",
+       subtitle = "Most people get 58 per month")
+p2 <- ggplot(data=d, aes(x=wage)) +
     geom_histogram(position="dodge",aes(y = ..density..), binwidth=density(wage$wage)$bw) +
   labs(y= 'Density', x= 'Wage',
        title = "Fig1: Wage Distribution",
        subtitle = "Most people get 50 per month")
 
-ggplotly(p)
+ggplotly(p1)
 ```
-
-```{r}
-fig <- plot_ly(total, x = ~date, y = ~coef, type = 'scatter',mode = 'lines+markers')
-fig <- fig %>% layout(title = 'Fig 2.Residence\'s living status through time',
-                      xaxis = list(title = "Date"),
-                      yaxis = list (title = "Spend/Income"))
-fig
-```
-```{r}
-p<-ggplot(data=total, aes(x=date, y=remain)) +
-  geom_bar(stat = "identity", width = 0.5, fill="steelblue") +
-  coord_cartesian(ylim = c(0, 160)) + 
-  labs(y= 'Total Deposit', x= 'Date',
-       title = "Fig3. Trend of Living Standards",
-       subtitle = "Highest remaining in 2022-03") +
-  geom_text(aes(label = remain), vjust = -1, colour = "black") +
-  theme(axis.title.y= element_text(angle=90),
-        axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
-        axis.ticks.x= element_blank(),
-        panel.background= element_blank(), 
-        axis.line= element_line(color= 'grey'), 
-        panel.grid.major.y = element_line(color = "grey",size = 0.5,linetype = 2))
-ggplotly(p)
-```
-```{r}
-
-# unique(wage$Wage_Group)
-#fig <- plot_ly(wage, x = ~wage, fill = ~Wage_Group ,type = "histogram")
-
-#fig
-```
-
-```{r}
-income <- financial %>%
-  filter(category %in% c('Wage', 'RentAdjustment')) %>%
-  group_by(participantId) %>%
-  summarise(income = sum(amount))
-
-outcome <- financial %>%
-  filter(!category %in% c('Wage', 'RentAdjustment')) %>%
-  group_by(participantId) %>%
-  summarise(outcome = sum(abs(amount)))
-
-comparison <- merge(income, outcome, by='participantId') %>%
-  merge(wage, by='participantId')
-comparison$ratio <- comparison$outcome / comparison$income
-
-p <- ggplot(comparison, aes(x = ratio, y = Wage_Group)) +
-  geom_boxplot()+
-  labs(y= 'Wage Group', x= 'Ratio in wage',
-       title = "Fig4: Wage Distribution",
-       subtitle = "People with low wages tend to spend most of their money")+
-  #theme_ridges() + 
-  #scale_fill_viridis_d(name = "Quartiles")+
-  ggtitle("Fig3: Wage Distribution")+
-  theme(plot.title = element_text(size = 12), 
-        legend.position = "top")
-p
-```
-
-
-```{r}
-outcome_different_cats <- financial %>%
-  filter(!category %in% c('Wage', 'RentAdjustment')) %>%
-  group_by(participantId, category) %>%
-  summarise(outcome = mean(abs(amount))) %>%
-  merge(wage, by='participantId')
-outcome_different_cats$ratio <- outcome_different_cats$outcome / outcome_different_cats$wage
-outcome_different_cats$labels <- scales::percent(outcome_different_cats$ratio)
-# outcome_different_cats
-ggplot(outcome_different_cats,aes(x="", y=outcome, fill=category))+
-  geom_bar(width = 1, stat = "identity")+
-  coord_polar("y", start=0)+
-  scale_fill_brewer(palette="Spectral")+
-  ggtitle("Category Distribution")+
-  labs(fill='category')+
-  xlab("") + 
-  ylab("Participants")+
-  geom_text(aes(label = labels))
-```
-
-
-
-
 
