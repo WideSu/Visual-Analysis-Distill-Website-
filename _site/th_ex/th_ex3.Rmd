@@ -54,33 +54,34 @@ financial$DateTime <- as.POSIXct(financial$timestamp, format="%Y-%m-%d %H:%M:%S"
 financial$year <- format(financial$DateTime, format="%Y")
 financial$month <- format(financial$DateTime, format="%m")
 financial$hour <- format(financial$DateTime, format="%H")
+
 spending_ts_cat <- financial %>% 
-  group_by(DateTime,category) %>%
+  group_by(month,category) %>%
   filter(!category %in% c('Wage', 'RentAdjustment')) %>%
   summarise(mean_amount = - mean(amount)) 
 
 spending_ts_total <- financial %>% 
-  group_by(DateTime) %>%
+  group_by(month) %>%
   filter(!category %in% c('Wage', 'RentAdjustment')) %>%
   summarise(mean_amount = - mean(amount)) 
 glimpse(spending_ts_total)
 ```
 
 ```{r}
-p1 <- ggplot(data=spending_ts_cat, aes(x=DateTime,
+p1 <- ggplot(data=spending_ts_cat, aes(x=month,
                                           y= mean_amount,
                                           color=category,
                                           group=category,
-                                          text = paste('</br>DateTime: ', DateTime,
+                                          text = paste('</br>Month: ', month,
                       '</br>Mean spending: ', round(mean_amount,2),
                       '</br>Category: ', category))) +
   geom_line()+
     #geom_bar(position="dodge2", stat = "identity") +
   facet_grid(category~. , scales = "free_y",space = "free")
-p2 <- ggplot(data=spending_ts_total, aes(x=DateTime,
+p2 <- ggplot(data=spending_ts_total, aes(x=month,
                                           y= mean_amount,
                                           group=1,
-                                          text = paste('</br>DateTime: ', DateTime,
+                                          text = paste('</br>Month: ', month,
                       '</br>Mean spending: ', round(mean_amount,2)
                       )
                       )
