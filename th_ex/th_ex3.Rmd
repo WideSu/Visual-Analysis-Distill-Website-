@@ -69,12 +69,11 @@ glimpse(spending_ts_total)
 ```{r}
 p1 <- ggplot(data=spending_ts_cat, aes(x=DateTime,
                                           y= mean_amount,
-                                          fill=category,
+                                          color=category,
                                           group=category,
                                           text = paste('</br>DateTime: ', DateTime,
                       '</br>Mean spending: ', round(mean_amount,2),
                       '</br>Category: ', category))) +
-  geom_point() +
   geom_line()+
     #geom_bar(position="dodge2", stat = "identity") +
   facet_grid(category~. , scales = "free_y",space = "free")
@@ -86,12 +85,10 @@ p2 <- ggplot(data=spending_ts_total, aes(x=DateTime,
                       )
                       )
              )+
-  geom_point() +
   geom_line()
-    #geom_bar(position="dodge2", stat = "identity")
-subplot(ggplotly(p1,tooltip = "text"),
-        ggplotly(p2,
-        tooltip = "text"))
+ggplotly(p1,tooltip = "text")
+ggplotly(p2,tooltip = "text")
+
 ```
 
 # Data Processing
