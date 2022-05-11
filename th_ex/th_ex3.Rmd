@@ -94,25 +94,6 @@ subplot(ggplotly(p1,tooltip = "text"),
         tooltip = "text"))
 ```
 
-```{r}
-#> `summarise()` ungrouping output (override with `.groups` argument)
-fig <- plot_ly(financial, type = 'scatter', mode = 'lines')%>%
-  add_trace(x = ~new_tms, y = ~amount, color= ~category)%>%
-  layout(showlegend = F, title='Time Series with Rangeslider',
-         xaxis = list(rangeslider = list(visible = T)))
-fig <- fig %>%
-  layout(
-         xaxis = list(zerolinecolor = '#ffff',
-                      zerolinewidth = 2,
-                      gridcolor = 'ffff'),
-         yaxis = list(zerolinecolor = '#ffff',
-                      zerolinewidth = 2,
-                      gridcolor = 'ffff'),
-         plot_bgcolor='#e5ecf6', width = 900)
-
-fig
-```
-
 # Data Processing
 Our data includes two csv files from the VAST data source, namely FinancialJournal.csv and Participants.csv. To show the financial health of Ohio city, we derived three supporting tables from the original data. Generally, we want to ananlyze the **spending habits** and **wage status** of people with **different education background, age, and household size**.
 
