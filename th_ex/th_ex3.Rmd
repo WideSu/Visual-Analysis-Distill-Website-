@@ -63,9 +63,7 @@ glimpse(financial)
 # Visual Analysis
 Our data includes two csv files from the VAST data source, namely FinancialJournal.csv and Participants.csv. To show the financial health of Ohio city, we derived three supporting tables from the original data. Generally, we want to ananlyze the **spending habits** and **wage status** of people with **different education background, age, and household size**.
 
-## Financial Health change over period
 
-The overview of income, spending, and remaining per month
 
 ### Supporting tables:
 
@@ -119,11 +117,9 @@ paged_table(income_monthly_cat, options = list(rows.print = 15, cols.print = 5))
 ```
 
 
-### Spending overview
+## How do wages compare with the overall costs?
 
-As we can see, people spend more money in **Feb-June**.
-
-And most people **spend 30%-35%** of their **income per month**, and save the **70%**. And we can see that with the increase of income, people also spend more.
+To compare wage with the overall costs. We computed the fraction of spending versus wage. As we can see, most people **spend 30%-36%** of their **income per month**, and save the **70%**. And people spend more and earn more money in **Mar-May**. It seems like the overall costs vesus wages is highest in April at 36%.
 
 ```{r}
 p1 <- ggplot(data=monthly_finance_status, aes(x=month,
@@ -217,6 +213,9 @@ p3 <- ggplot(data=pie_data, aes(x="", y=fraction, fill=category)) +
         axis.title.y=element_blank())
 p3
 ```
+## Financial Health change over period
+
+Financial health consists of two parts, namely income and spending. To measure it, we firstly computed the fraction of spending on each category versus wage per month and trying to find the patterns in people's spending. Then, we draw a graph of income by category per month and potential factors that may affect wages such as age and education level.
 
 Here is the line plot for the relative cost per category comparing to the participants' income. As we can see, people spend **a relatively low portion of their income in education**, while spend **large portions on shelter, food and recreation **.
 
@@ -237,7 +236,7 @@ p4<-ggplot(data=cost_ratio, aes(x=month,
   facet_wrap(~ category, scales = "free_y") +
   labs(y= 'Spend/income ratio', x= 'Month',
        title = "Fig 4. Spend/income trend by category (monthly)",
-       subtitle = "")
+       subtitle = "People are spending more on food, less on other categories")
     #geom_bar(position="dodge2", stat = "identity") 
 ggplotly(p4,tooltip="text")
 ```
@@ -260,13 +259,13 @@ p5 <- ggplot(data=income_monthly_cat, aes(x=month,
   scale_y_continuous(labels = dollar)+
   labs(y= 'Sum of income', x= 'Month',
        title = "Fig 5. Sum of income by category (per month)",
-       subtitle = "Spending on shelter increase sharply in March-May")
+       subtitle = "Most of participants's income comes from wages.\n And it stays stable excepet a surge in March-May")
     #geom_bar(position="dodge2", stat = "identity") +
   # facet_grid(category~. )
 ggplotly(p5,tooltip="text")
 ```
 
-## What is affecting the wage?
+### What is affecting the wage?
 
 - wage_info: we grouped people into 5 wage groups, which are '<=100', '101-200', '201-300', '301-400', '>400' to analyse their background and spending habits separately.
 
@@ -337,7 +336,12 @@ rm(income_monthly_cat)
 rm(cost_ratio)
 ```
 
-## What are the spending habits of different people?
+## Spending habits patterns
+
+We find similar spending habits among people with similar wage levels and education level.
+
+- People who has high wage tend to spend less money on shelter and food
+- People with high education tend to spend more money on education.
 
 ```{r}
 personal_spending_cat <- financial %>% 
@@ -345,6 +349,7 @@ personal_spending_cat <- financial %>%
   group_by(category, participantId) %>%
   summarise(spend_cat = - sum(amount)) 
 personal_spending_cat <- merge(personal_spending_cat, wage_info, by=c("participantId"))
+personal_spending_cat$spend_ratio <- personal_spending_cat$spend_cat / personal_spending_cat$wage
 paged_table(personal_spending_cat, options = list(rows.print = 15, cols.print = 5))
 ```
 
@@ -366,7 +371,7 @@ spending_cat_each_wage_group <- personal_spending_cat %>%
 p8
 ```
 
-People with high education tend to spend more money on education and shelter.
+People with high education tend to spend more money on education.
 
 ```{r}
 p9 <- ggplot(personal_spending_cat, aes(x=educationLevel, y=spend_cat)) +
@@ -384,6 +389,21 @@ p9 <- ggplot(personal_spending_cat, aes(x=educationLevel, y=spend_cat)) +
 p9
 ```
 
+# Gallary
+
+Here are all the graphs for challenge3.2
+
+```{r echo=FALSE}
+p1
+p2
+p3
+p4
+p5
+p6
+p7
+p8
+p9
+```
 
 
 
