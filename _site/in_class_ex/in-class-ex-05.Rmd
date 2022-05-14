@@ -1,0 +1,351 @@
+---
+title: "Hands-on excercise 5"
+description: |
+  A new article created using the Distill format.
+author:
+  - name: Huang Anni 
+    url: https://example.com/norajones
+    affiliation: "Singapore Management University"
+    affiliation_url: https://www.smu.edu.sg/
+date: "`r Sys.Date()`"
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      eval = TRUE,
+                      warning = FALSE, 
+                      message = FALSE,
+                      fig.retina = 3) # make it sharper
+```
+
+To start with, we need to install packages as follows:
+
+- 'scales',
+- 'viridis',
+- 'lubridate',
+- 'ggthemes',
+- 'gridExtra',
+- 'tidyverse',
+- 'readxl',
+- 'knitr',
+- data.table
+
+```{r}
+# install.packages("remotes") # if "remotes" is not already installed
+packages = c('scales', 'viridis', 
+             'lubridate', 'ggthemes', 
+             'gridExtra', 'tidyverse', 
+             'readxl', 'knitr',
+             'data.table', 'ViSiElse',
+             'trelliscopejs','gapminder')
+for (p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p, dependencies = T)
+  }
+  library(p,character.only = T)
+}
+```
+
+# Calendar Heatmap
+
+By the end of this section, you will be able to:
+
+- plot a calender heatmap by using ggplot2 functions and extension,
+- to write function using R programming,
+- to derive specific date and time related field by using base R and lubridate packages
+- to perform data preparation task by using tidyr and dplyr packages.
+
+# The Data
+
+For the purpose of this hands-on exercise, eventlog.csv file will be used. This data file consists of 199,999 rows of time-series cyber attack records by country.
+
+## Importing the data
+
+First, you will use the code chunk below to import eventlog.csv file into R environment and called the data frame as attacks.
+
+```{r load data}
+attacks <- read_csv("data/eventlog.csv")
+```
+## Examining the data structure
+
+It is always a good practice to examine the imported data frame before further analysis is performed.
+
+For example, kable() can be used to review the structure of the imported data frame.
+
+```{r check data}
+kable(head(attacks))
+```
+
+There are three columns, namely timestamp, source_country and tz.
+
+- timestamp field stores date-time values in POSIXct format.
+- source_country field stores the source of the attack. It is in ISO 3166-1 alpha-2 country code.
+- tz field stores time zone of the source IP address.
+
+## Data Preparation
+
+Step 1: Deriving weekday and hour of day fields
+
+Before we can plot the calender heatmap, two new fields namely wkday and hour need to be derived. In this step, we will write a function to perform the task.
+
+```{r data prep}
+make_hr_wkday <- function(ts, sc, tz) {
+  real_times <- ymd_hms(ts, 
+                        tz = tz[1], 
+                        quiet = TRUE)
+  dt <- data.table(source_country = sc,
+                   wkday = weekdays(real_times),
+                   hour = hour(real_times))
+  return(dt)
+  }
+```
+
+Note: [ymd_hms()](https://lubridate.tidyverse.org/reference/ymd_hms.html) and [hour()](https://lubridate.tidyverse.org/reference/hour.html) are from [lubridate](https://lubridate.tidyverse.org/) package and [weekdays()](https://www.rdocumentation.org/packages/base/versions/3.6.2/topics/weekdays) is a base R function.
+
+Step 2: Deriving the attacks tibble data frame
+
+```{r data prep 2}
+wkday_levels <- c('Saturday', 'Friday', 
+                  'Thursday', 'Wednesday', 
+                  'Tuesday', 'Monday', 
+                  'Sunday')
+attacks <- attacks %>%
+  group_by(tz) %>%
+  do(make_hr_wkday(.$timestamp, 
+                   .$source_country, 
+                   .$tz)) %>% 
+  ungroup() %>% 
+  mutate(wkday = factor(
+    wkday, levels = wkday_levels),
+    hour  = factor(
+      hour, levels = 0:23))
+```
+
+Note: Beside extracting the necessary data into attacks data frame, mutate() of dplyr package is used to convert wkday and hour fields into factor so they'll be ordered when plotting
+
+# Building the Calendar Heatmaps
+
+```{r build calendar heatmaps}
+grouped <- attacks %>% 
+  count(wkday, hour) %>% 
+  ungroup() %>%
+  na.omit() # do not include none
+ggplot(grouped, 
+       aes(hour, 
+           wkday, 
+           fill = n)) + 
+geom_tile(color = "white", 
+          size = 0.1) + 
+theme_tufte(base_family = "Helvetica") + 
+coord_equal() +
+scale_fill_gradient(name = "# of attacks",
+                    low = "sky blue", 
+                    high = "dark blue") +
+labs(x = NULL, 
+     y = NULL, 
+     title = "Attacks by weekday and time of day") +
+theme(axis.ticks = element_blank(),
+      plot.title = element_text(hjust = 0.5),
+      legend.title = element_text(size = 8),
+      legend.text = element_text(size = 6) )
+```
+
+Things to learn from the code chunk:
+
+- a tibble data table called grouped is derived by aggregating the attack by wkday and hour fields.
+- a new field called n is derived by using group_by() and count() functions.
+- na.omit() is used to exclude missing value.
+- geom_tile() is used to plot tiles (grids) at each x and y position. color and size arguments are used to specify the border color and line size of the tiles.
+- theme_tufte() of ggthemes package is used to remove unnecessary chart junk. To learn which visual components of default ggplot2 have been excluded, you are encouraged to comment out this line to examine the default plot.
+- coord_equal() is used to ensure the plot will have an aspect ratio of 1:1.
+- [scale_fill_gradient()](https://ggplot2.tidyverse.org/reference/scale_gradient.html) function is used to creates a two colour gradient (low-high).
+
+## Building Multiple Calendar Heatmaps
+
+**Challenge**: Building multiple heatmaps for the top four countries with the highest number of attacks.
+
+## Plotting Multiple Calendar Heatmaps
+
+Step 1: Deriving attack by country object
+
+In order to identify the top 4 countries with the highest number of attacks, you are required to do the followings:
+
+- count the number of attacks by country,
+- calculate the percent of attackes by country, and
+- save the results in a tibble data frame.
+
+Step 2: Preparing the tidy data frame
+
+In this step, you are required to extract the attack records of the top 4 countries from attacks data frame and save the data in a new tibble data frame (i.e. top4_attacks).
+
+Step 3: Plotting the Multiple Calender Heatmap by using ggplot2 package.
+
+# Cycle Plot
+
+In this section, you will learn how to plot a cycle plot showing the time-series patterns and trend of visitor arrivals from Vietnam programmatically by using ggplot2 functions.
+
+## Data Preparation
+
+### Step 1: Data Import
+
+For the purpose of this hands-on exercise, arrivals_by_air.xlsx will be used.
+
+The code chunk below imports arrivals_by_air.xlsx by using read_excel() of readxl package and save it as a tibble data frame called air.
+
+```{r}
+air <- read_excel("data/arrivals_by_air.xlsx")
+```
+
+### Step 2: Deriving month and year fields
+
+Next, two new fields called month and year are derived from Month-Year field.
+
+```{r}
+air$month <- factor(month(air$`Month-Year`), 
+                    levels=1:12, 
+                    labels=month.abb, 
+                    ordered=TRUE) 
+air$year <- year(ymd(air$`Month-Year`))
+```
+
+### Step 3: Extracting the target country
+
+Next, the code chunk below is use to extract data for the target country (i.e. Vietnam)
+
+```{r}
+Vietnam <- air %>% 
+  select(`Vietnam`, 
+         month, 
+         year) %>%
+  filter(year >= 2010)
+```
+
+### Step 4: Computing year average arrivals by month
+
+The code chunk below uses group-by() and summarise() of dplyr to compute year average arrivals by month.
+
+```{r}
+hline.data <- Vietnam %>% 
+  group_by(month) %>%
+  summarise(avgvalue = mean(`Vietnam`))
+```
+
+# Visulising Daily Life
+
+In this section, you will learn how to visual daily life by using ViSiElse package. It is specially designed for visualising behavioral observation over time.
+
+- To get started, install ViSiElse package.
+- Add ViSiElse in the packages list and re-run the code chunk.
+
+### Plotting the cycle plot
+
+The code chunk below is used to plot the cycle plot.
+
+```{r}
+ggplot() + 
+  geom_line(data=Vietnam,
+            aes(x=year, 
+                y=`Vietnam`, 
+                group=month), 
+            colour="black") +
+  geom_hline(aes(yintercept=avgvalue), 
+             data=hline.data, 
+             linetype=6, 
+             colour="red", 
+             size=0.5) + 
+  facet_grid(~month) +
+  labs(axis.text.x = element_blank(),
+       title = "Visitor arrivals from Vietnam by air, Jan 2010-Dec 2019") +
+  xlab("") +
+  ylab("No. of Visitors")
+```
+
+### Data preparation
+
+For the purpose of this hands-on exercise, typDay data set includes together with ViSiElse package will be used.
+
+- Loading typDay dataset
+
+```{r}
+data("typDay")
+```
+
+- Examine the data table in RStudio
+
+This data set shows the actions usually performed during a typical day. The simulated dataset of 100 subjects correspond to the timestamps (in min) of each action of the day, from midnight to midnight. Each value is the time elapse between the beginning of the day (midnight) and the execution of the action.
+
+### Working with visielse()
+
+Using the default
+
+```{r}
+visielse(typDay)
+```
+
+- On the graph, actions are organized one under the other (y-axis) and their executions are distributed along the time axis (x-axis).
+- A drawn rectangle means that at least one subject has done the action in the interval of time.
+- The size of the time interval is set by the breaks of the time axis (here every 30 min from midnight to midnight).
+- The color’s intensity of the rectangles is proportional to the number of individuals who realized the action during the time interval.
+
+- excluding the default summary statistics by using informer argument.
+
+```{r}
+visielse(typDay, informer = NULL)
+```
+
+- displaying mean as summary statistics .
+
+```{r}
+visielse(typDay, informer = "mean")
+```
+
+### Punctual and long actions
+
+
+ViSiElse differentiate two type of actions, namely: punctual and long.
+
+- A punctual action is an action with no duration, or not lasting long enough to be measured regarding the time scale of the studied behavior.
+- A long action is an action having duration defined by two punctual actions, one for its beginning, and one for its ending. For example, the action “sleep” is long — it lasts at least a few hours which is substantial in the scale of a day - while the action “wake up” is punctual — it usually only takes seconds or a few minutes and its duration is not relevant in the scale of a day.
+
+For the typical day example, the list of actions can then be transformed to:
+
+- 1 - Sleeping — long
+
+-2 - Wake up — punctual
+
+- 3 - Take a shower — punctual
+
+- 4 - Eat breakfast — punctual
+
+- 5 - Start working — punctual
+
+- 6 - Working — long
+
+- 7 - Stop working — punctual
+
+- 8 - Lunch break — long
+
+- 9 - Pick up the kids — punctual
+
+- 10 - Cook and eat dinner — long
+
+- 11 - Go to sleep — punctual
+
+- 12 - First coffee — punctual
+
+### Working with ViSibook
+
+While the dataset contains the raw time data of the studied behavior, the ViSibook contains its structure. Mainly, it is a table consisting of the characteristics of every action.
+
+When running visielse() function with only the dataset as argument, the ViSibook is automatically generated and can then be extracted from the visielse object. Then, we can use the ConvertFromViSibook() function to transform the ViSibook into a data.frame and modify it.
+
+Let’s see what the ViSibook from our first plot looks like !
+
+```{r}
+b1 <- visielse(typDay, informer = NULL)
+```
+

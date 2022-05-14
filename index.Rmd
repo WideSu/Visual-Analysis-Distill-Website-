@@ -27,3 +27,5 @@ Upcoming lectures and assignments: [click here](https://isss608-ay2021-22april.n
   - [**Take-home excercise 3**](https://huanganni.netlify.app/th_ex/th_ex3.html)
 - Week 4 Building Funnel Plot with R
   - [Hand-out 4](https://huanganni.netlify.app/in_class_ex/in-class-ex-04.html)
+- Week 5 Time Series and Event Log
+  - [Hand-out 5](https://huanganni.netlify.app/in_class_ex/in-class-ex-05.html)
