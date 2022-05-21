@@ -1,0 +1,161 @@
+---
+title: "In Class Exercise 6"
+author:
+- name: "Huang Anni"
+  affiliation: "Singapore Management University"
+description: |
+  Geolocation data
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
+---
+
+```{r}
+packages = c('ggiraph', 'plotly', 'tidyverse', 'DT','gganimate',
+             'knitr', 'ggdist', 'scales', 'grid', 'gridExtra',
+             'patchwork','ggsignif','gghighlight',"hrbrthemes",
+             'readxl', 'gifski', 'gapminder','treemap', 'treemapify',
+             'rPackedBar','ggridges','rmarkdown','crosstalk',
+             'd3scatter','tidycensus','timetk','ggseas','lubridate',
+             'ggrepel','doSNOW','data.table','ViSiElse','sf','tmap','clock')
+
+for(p in packages) {
+  if(!require(p, character.only = T)) {
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+
+```{r}
+schools <- read_sf("./data/Attributes/Schools.csv", options = "GEOM_POSSIBLE_NAMES=location")
+buildings <- read_sf("./data/Attributes/Buildings.csv", options = "GEOM_POSSIBLE_NAMES=location")
+apartments <- read_sf("./data/Attributes/Apartments.csv", options = "GEOM_POSSIBLE_NAMES=location")
+restaurants <- read_sf("./data/Attributes/Restaurants.csv", options = "GEOM_POSSIBLE_NAMES=location")
+pubs <- read_sf("./data/Attributes/Pubs.csv", options = "GEOM_POSSIBLE_NAMES=location")
+employers <- read_sf("./data/Attributes/Employers.csv", options = "GEOM_POSSIBLE_NAMES=location")
+tmap_mode("view")
+tm_shape(buildings)+
+tm_polygons(col = "grey60",
+           size = 1,
+           border.col = "black",
+           border.lwd = 1)
+tmap_mode("plot")# switch back to static
+
+tmap_mode("plot")
+tm_shape(buildings)+
+tm_polygons(col = "grey60",
+           size = 1,
+           border.col = "black",
+           border.lwd = 1) +
+tm_shape(employers) +
+  tm_dots(col = "red")
+
+sgpools <- read_csv("./data/geo_data/aspatial/SGPools_wgs84.csv")
+view(sgpools)
+sgpools_sf <- st_as_sf(
+  sgpools, 
+  coords = c("XCOORD",
+             "YCOORD"),
+             crs= 3414)
+tmap_mode("view")
+tm_shape(sgpools_sf)+
+tm_bubbles(col = "red",
+           size = 1,
+           border.col = "black",
+           border.lwd = 1)
+```
+
+```{r process-log-data, eval=FALSE, include=FALSE}
+logs <- read_sf("data/Activity Logs/ParticipantStatusLogs1.csv", 
+                options = "GEOM_POSSIBLE_NAMES=currentLocation")
+glimpse(logs)
+#logs$timestamp <- date_time_parse(logs$timestamp)
+logs_selected <- logs %>%
+  mutate(Timestamp = date_time_parse(timestamp,
+                                     zone = "",
+                                     format = "%Y-%m-%dT%H:%M:%S"))%>%
+  mutate(day = get_day(Timestamp)) %>%
+  filter(currentMode == "Transport")
+write_rds(logs_selected,
+          "data/rds/logs_selected.rds")
+```
+
+```{r eval=TRUE}
+logs_selected <- read_rds("data/rds/logs_selected.rds")
+hex <- st_make_grid(buildings, 
+                    cellsize=100, 
+                    square=FALSE) %>%
+  st_sf() %>%
+  rowid_to_column('hex_id')
+plot(hex)
+```
+
+```{r}
+points_in_hex <- st_join(logs_selected, 
+                         hex, 
+                         join=st_within)
+plot(points_in_hex,pch='.')
+```
+```{r}
+points_in_hex <- st_join(logs_selected, 
+                        hex, 
+                        join=st_within) %>%
+  st_set_geometry(NULL) %>%
+  count(name='pointCount', hex_id)
+head(points_in_hex)
+```
+
+```{r}
+hex_combined <- hex %>%
+  left_join(points_in_hex, 
+            by = 'hex_id') %>%
+  replace(is.na(.), 0)
+
+tm_shape(hex_combined %>%
+           filter(pointCount > 0))+
+  tm_fill("pointCount",
+          n = 8,
+          style = "quantile") +
+  tm_borders(alpha = 0.1)
+```
+
+```{r}
+logs_path <- logs_selected %>%
+  group_by(participantId, day) %>%
+  summarize(m = mean(Timestamp), 
+            do_union=FALSE) %>%
+  st_cast("LINESTRING")
+print(logs_path)
+```
+
+```{r}
+tmap_mode('plot')
+tm_shape(buildings)+
+  tm_polygons(col = "grey60",
+              size=1,
+              border.col="black",
+              border.lwd = 1)+
+  tm_shape(logs_selected)+
+  tm_dots(col = "red")
+```
+
+```{r}
+logs_path_selected <- logs_path %>%
+  filter(participantId == 0)
+
+tmap_mode('plot')
+tm_shape(buildings)+
+  tm_polygons(col = "grey60",
+              size=1,
+              border.col="black",
+              border.lwd = 1)+
+  tm_shape(logs_path_selected)+
+  tm_lines(col="blue")
+#tmap_mode("plot")
+#tmap_mode("plot")
+```
+
+
+
