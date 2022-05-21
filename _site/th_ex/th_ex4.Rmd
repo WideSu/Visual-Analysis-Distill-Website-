@@ -1,0 +1,126 @@
+---
+title: "Take Home Exercise 4"
+author:
+- name: "Huang Anni"
+  affiliation: "Singapore Management University"
+description: |
+  VAST Challenge 3
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
+---
+
+```{r}
+packages = c('ggiraph', 'plotly', 'tidyverse', 'DT','gganimate',
+             'knitr', 'ggdist', 'scales', 'grid', 'gridExtra',
+             'patchwork','ggsignif','gghighlight',"hrbrthemes",
+             'readxl', 'gifski', 'gapminder','treemap', 'treemapify',
+             'rPackedBar','ggridges','rmarkdown','crosstalk',
+             'd3scatter','tidycensus','timetk','ggseas','lubridate',
+             'ggrepel','doSNOW','data.table','ViSiElse','plyr')
+
+for(p in packages) {
+  if(!require(p, character.only = T)) {
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+
+## Read in all the activity logs
+
+```{r read-in-data, eval=FALSE}
+csv.list <- list.files(path="./rawdata/Activity Logs", pattern=".csv$", full.names=TRUE)
+
+cl <- makeCluster(4)
+registerDoSNOW(cl)
+
+pb <- txtProgressBar(max=length(csv.list), style=3)
+pbu <- function(i) setTxtProgressBar(pb, i)
+dt <- setDT(ldply(csv.list, fread, .parallel=TRUE, .paropts=list(.options.snow=list(progress=pbu))))
+
+stopCluster(cl)
+```
+
+## Save the data for two participants
+
+```{r save-filtered-data, eval=FALSE}
+glimpse(dt)
+participantId_list <- c(79, 80)
+two_par_log <- dt %>%
+  filter(participantId %in% participantId_list)
+write_csv(two_par_log, "./data/two_participants_log.csv")
+
+## Read in the filtered data
+```
+
+```{r first-draft}
+two_par_log <- read_csv("./data/two_participants_log.csv")
+paged_table(two_par_log)
+```
+
+```{r first-plot2}
+calc_min <- function(row) {
+  datetime_obj <- row["timestamp"]
+  x<- hour(datetime_obj)*60 + minute(datetime_obj) + second(datetime_obj)/60
+  return(x)
+}
+two_par_log$minutes <- apply(two_par_log,1,calc_min)
+tmp_1 <- two_par_log %>%
+  filter(participantId == 79) %>%
+  group_by(date(timestamp), currentMode, minutes) %>% 
+  tally(name = "timespan")
+  
+#tmp$date_p_id <- paste0(tmp$`date(timestamp)`, tmp$participantId)
+tmp_1 <- tmp_1 %>% pivot_wider(names_from = currentMode, values_from = timespan) 
+
+tmp_1$id <- 1:nrow(tmp_1)
+
+tmp_1 = subset(tmp_1, select = -c(`date(timestamp)`) )
+swap <- function(DF, n, m)
+{
+ if (class(n)=="character") n <- which(colnames(DF)==n)
+ if (class(m)=="character") m <- which(colnames(DF)==m)
+ p <- NCOL(DF)
+ if (!(1<=n & n<=p)) stop("`n` represents invalid index!")
+ if (!(1<=m & m<=p)) stop("`m` represents invalid index!")
+ index <- 1:p
+ index[n] <- m; index[m] <- n
+ DF0 <- DF %>% select(all_of(index))
+ return(DF0)
+}
+tmp_1 <- swap(tmp_1, "AtHome",'id')
+view(tmp_1)
+tmp_1[is.na(tmp_1)] <- 0
+p1 <- visielse(tmp_1, informer=NULL,pixel = 100, method = 'cut') #
+b1 <-ConvertFromViSibook(p1@book)
+# b1 <- b1[order(as.numeric(b1$showorder)),]
+# b1$label <- c("Home","Recreation",'Restaurant
+# ','Work','Transport') 
+
+# SleepStatus_start_end_per_day <- two_par_log %>%
+#   group_by(date(timestamp),sleepStatus) %>%
+#   summarise(start = min(timestamp), end = max(timestamp))
+# 
+# HungerStatus_start_end_per_day <- two_par_log %>%
+#   group_by(date(timestamp),hungerStatus) %>%
+#   summarise(start = min(timestamp), end = max(timestamp))
+
+```
+
+```{r}
+p1
+```
+
+```{r tutorial}
+coffee <- c(58, 11, 5, 53, 53, 59, 24, 59, 46, 20)
+fill_coffee <- c(162, 57, 103, 154, 165, 132, 74, 107, 104,  93)
+fill_water <- c(66, 92, 54, 78, 74, 114, 91, 129, 71, 56)
+push_B <- c(74, 99, 62, 84, 83, 120, 95, 129, 80, 63)
+drink <- c(472, 176, 475, 283, 265, 207, 234, 184, 490, 520)
+X <- data.frame(id = seq(1,10), coffee, fill_coffee, fill_water, push_B, drink)
+head(X)
+library(ViSiElse)
+visi1 <- visielse(X)
+```

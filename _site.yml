@@ -25,6 +25,8 @@ navbar:
         href: th_ex/th_ex2.html
       - text: "Take-home Excercise3"
         href: th_ex/th_ex3.html
+      - text: "Take-home Excercise4"
+        href: th_ex/th_ex4.html
     - text: "In-class Excercise"
       menu:
       - text: "In-class Excercise1"
@@ -35,4 +37,6 @@ navbar:
         href: in_class_ex/in-class-ex-04.html
       - text: "In-class Excercise5"
         href: in_class_ex/in-class-ex-05.html
+      - text: "In-class Excercise6"
+        href: in_class_ex/in-class-ex6.html
 output: distill::distill_article
