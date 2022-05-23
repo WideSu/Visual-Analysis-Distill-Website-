@@ -4,7 +4,7 @@ author:
 - name: "Huang Anni"
   affiliation: "Singapore Management University"
 description: |
-  VAST Challenge 3
+  Time series analysis
 output:
   distill::distill_article:
     toc: true
@@ -60,67 +60,110 @@ two_par_log <- read_csv("./data/two_participants_log.csv")
 paged_table(two_par_log)
 ```
 
-```{r first-plot2}
-calc_min <- function(row) {
-  datetime_obj <- row["timestamp"]
-  x<- hour(datetime_obj)*60 + minute(datetime_obj) + second(datetime_obj)/60
-  return(x)
-}
-two_par_log$minutes <- apply(two_par_log,1,calc_min)
-tmp_1 <- two_par_log %>%
-  filter(participantId == 79) %>%
-  group_by(date(timestamp), currentMode, minutes) %>% 
-  tally(name = "timespan")
-  
-#tmp$date_p_id <- paste0(tmp$`date(timestamp)`, tmp$participantId)
-tmp_1 <- tmp_1 %>% pivot_wider(names_from = currentMode, values_from = timespan) 
+```{r}
+two_par_log$end_timestamp <- two_par_log$timestamp + lubridate::minutes(5)
+time_line <- two_par_log %>%
+  filter( date(two_par_log$timestamp) == '2022-03-01' ) #& participantId == 79
 
-tmp_1$id <- 1:nrow(tmp_1)
+p1<-ggplot()+
+  geom_segment(data=time_line,mapping=aes(x=timestamp,
+                                          xend=end_timestamp,
+                                          y=currentMode, 
+                                          yend = currentMode, 
+                                          color= currentMode),
+               size=6)+
+  facet_grid(participantId~.) +
+  theme(legend.position = 'top',
+        legend.title=element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        text = element_text(size=10)) +
+  labs(title="Fig1. Daily Routines of Two Selected Participant(79 vs 80)",
+       subtitle="79 goes to home after work while 80 has some recreation after work")
 
-tmp_1 = subset(tmp_1, select = -c(`date(timestamp)`) )
-swap <- function(DF, n, m)
-{
- if (class(n)=="character") n <- which(colnames(DF)==n)
- if (class(m)=="character") m <- which(colnames(DF)==m)
- p <- NCOL(DF)
- if (!(1<=n & n<=p)) stop("`n` represents invalid index!")
- if (!(1<=m & m<=p)) stop("`m` represents invalid index!")
- index <- 1:p
- index[n] <- m; index[m] <- n
- DF0 <- DF %>% select(all_of(index))
- return(DF0)
-}
-tmp_1 <- swap(tmp_1, "AtHome",'id')
-view(tmp_1)
-tmp_1[is.na(tmp_1)] <- 0
-p1 <- visielse(tmp_1, informer=NULL,pixel = 100, method = 'cut') #
-b1 <-ConvertFromViSibook(p1@book)
-# b1 <- b1[order(as.numeric(b1$showorder)),]
-# b1$label <- c("Home","Recreation",'Restaurant
-# ','Work','Transport') 
-
-# SleepStatus_start_end_per_day <- two_par_log %>%
-#   group_by(date(timestamp),sleepStatus) %>%
-#   summarise(start = min(timestamp), end = max(timestamp))
-# 
-# HungerStatus_start_end_per_day <- two_par_log %>%
-#   group_by(date(timestamp),hungerStatus) %>%
-#   summarise(start = min(timestamp), end = max(timestamp))
+p1
 
 ```
 
 ```{r}
-p1
+two_par_log$end_timestamp <- two_par_log$timestamp + lubridate::minutes(5)
+time_line <- two_par_log %>%
+  filter( date(two_par_log$timestamp) == '2022-03-01' ) #& participantId == 79
+  # filter( date(two_par_log$timestamp) == '2022-03-01' ) #& participantId == 79
+p2 <- ggplot()+
+  geom_segment(data=time_line,mapping=aes(x=timestamp,
+                                          xend=end_timestamp,
+                                          y=hungerStatus, 
+                                          yend = hungerStatus, 
+                                          color= hungerStatus),
+               size=6)+
+  facet_grid(.~participantId~.) +
+  theme(legend.position = 'top',
+        legend.title=element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        text = element_text(size=10)) +
+  labs(title="Fig2. Hunger Status of Two Selected Participant(79 vs 80)",
+       subtitle="79 only eat 3 times a day but become staving after 18:00 while 80 eat 4 times a day and do not feel starving at all")
+
+p2
 ```
 
-```{r tutorial}
-coffee <- c(58, 11, 5, 53, 53, 59, 24, 59, 46, 20)
-fill_coffee <- c(162, 57, 103, 154, 165, 132, 74, 107, 104,  93)
-fill_water <- c(66, 92, 54, 78, 74, 114, 91, 129, 71, 56)
-push_B <- c(74, 99, 62, 84, 83, 120, 95, 129, 80, 63)
-drink <- c(472, 176, 475, 283, 265, 207, 234, 184, 490, 520)
-X <- data.frame(id = seq(1,10), coffee, fill_coffee, fill_water, push_B, drink)
-head(X)
-library(ViSiElse)
-visi1 <- visielse(X)
+```{r}
+make_hr_wkday <- function(ts,sleepStatus) {
+  real_times <- ymd_hms(ts, 
+                        quiet = TRUE)
+  dt <- data.table(Sleep_Status = sleepStatus,
+                   wkday = weekdays(real_times),
+                   hour = hour(real_times))
+  return(dt)
+}
+two_par_log$wkday <- weekdays(two_par_log$timestamp)
+two_par_log$hour <- hour(two_par_log$timestamp)
+wkday_levels <- c('Saturday', 'Friday', 
+                  'Thursday', 'Wednesday', 
+                  'Tuesday', 'Monday', 
+                  'Sunday')
+participantId_list <- c(79,80)
+grouped <-  two_par_log%>%
+  group_by(participantId,wkday,hour,sleepStatus) %>%
+  tally()
+ref1 <- crossing(wkday_levels, 0:23)
+names(ref1)[1] <- "wkday"
+names(ref1)[2] <- "hour"
+ref1 <- ref1%>%
+  mutate(participantId = 79)
+ref2 <- copy(ref1)
+ref2 <- mutate(ref2, participantId = 80)
+grouped <-  two_par_log%>%
+  group_by(participantId,wkday,hour,sleepStatus) %>%
+  tally()
+ref <-rbind(ref1, ref2) %>%
+  merge(grouped, by=c('wkday','hour','participantId'), all.x=TRUE) %>%
+  mutate(n = coalesce(n,0))
+
+ref$n <- (ref$n * 5 /60) / length(ref1)
+
+
+
+ggplot(filter(ref,sleepStatus=="Sleeping") , 
+       aes(hour, 
+           wkday, 
+           fill = n)) + 
+geom_tile(color = "white", 
+          size = 0.1) + 
+  facet_grid(participantId~sleepStatus)+
+# theme_tufte(base_family = "Helvetica") + 
+coord_equal() +
+scale_fill_gradient(name = "# Sleeping hours",
+                    low = "sky blue", 
+                    high = "dark blue") +
+labs(x = NULL, 
+     y = NULL, 
+     title = "Fig3. Sleeping hours by weekday and time of day",
+     subtitle = "79 sleeps and wakes up earlier than 80") +
+theme(axis.ticks = element_blank(),
+      plot.title = element_text(hjust = 0.5),
+      legend.title = element_text(size = 8),
+      legend.text = element_text(size = 6) )
 ```

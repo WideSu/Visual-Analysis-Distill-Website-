@@ -4,7 +4,7 @@ author:
 - name: "Huang Anni"
   affiliation: "Singapore Management University"
 description: |
-  VAST Challenge 3
+  Time series analysis
 output:
   distill::distill_article:
     toc: true
@@ -110,23 +110,60 @@ p2
 ```
 
 ```{r}
+make_hr_wkday <- function(ts,sleepStatus) {
+  real_times <- ymd_hms(ts, 
+                        quiet = TRUE)
+  dt <- data.table(Sleep_Status = sleepStatus,
+                   wkday = weekdays(real_times),
+                   hour = hour(real_times))
+  return(dt)
+}
+two_par_log$wkday <- weekdays(two_par_log$timestamp)
+two_par_log$hour <- hour(two_par_log$timestamp)
 wkday_levels <- c('Saturday', 'Friday', 
                   'Thursday', 'Wednesday', 
                   'Tuesday', 'Monday', 
                   'Sunday')
-make_hr_wkday <- function(ts, sleepStatus) {
-  real_times <- ymd_hms(ts, quiet = TRUE)
-  dt <- data.table(wkday = weekdays(real_times),
-                   hour = hour(real_times))
-  return(dt)
-}
+participantId_list <- c(79,80)
+grouped <-  two_par_log%>%
+  group_by(participantId,wkday,hour,sleepStatus) %>%
+  tally()
+ref1 <- crossing(wkday_levels, 0:23)
+names(ref1)[1] <- "wkday"
+names(ref1)[2] <- "hour"
+ref1 <- ref1%>%
+  mutate(participantId = 79)
+ref2 <- copy(ref1)
+ref2 <- mutate(ref2, participantId = 80)
+grouped <-  two_par_log%>%
+  group_by(participantId,wkday,hour,sleepStatus) %>%
+  tally()
+ref <-rbind(ref1, ref2) %>%
+  merge(grouped, by=c('wkday','hour','participantId'), all.x=TRUE) %>%
+  mutate(n = coalesce(n,0))
 
-sleep_hours <- two_par_log %>%
-  group_by(weekdays(timestamp),sleepStatus) %>%
-  count(timestamp)
-sleep_hours
-sleep_hour_by_part <- count(
-  sleepStatus, participantId) %>%
-  mutate(percent = percent(n/sum(n))) %>%
-  arrange(desc(n))
+ref$n <- (ref$n * 5 /60) / length(ref1)
+
+
+
+ggplot(filter(ref,sleepStatus=="Sleeping") , 
+       aes(hour, 
+           wkday, 
+           fill = n)) + 
+geom_tile(color = "white", 
+          size = 0.1) + 
+  facet_grid(participantId~sleepStatus)+
+# theme_tufte(base_family = "Helvetica") + 
+coord_equal() +
+scale_fill_gradient(name = "# Sleeping hours",
+                    low = "sky blue", 
+                    high = "dark blue") +
+labs(x = NULL, 
+     y = NULL, 
+     title = "Fig3. Sleeping hours by weekday and time of day",
+     subtitle = "79 sleeps and wakes up earlier than 80") +
+theme(axis.ticks = element_blank(),
+      plot.title = element_text(hjust = 0.5),
+      legend.title = element_text(size = 8),
+      legend.text = element_text(size = 6) )
 ```
