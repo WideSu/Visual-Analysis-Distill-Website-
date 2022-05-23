@@ -1,0 +1,249 @@
+---
+title: "In Class Exercise 7"
+author:
+- name: "Huang Anni"
+  affiliation: "Singapore Management University"
+description: |
+  Geolocation data
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
+---
+
+```{r}
+packages = c('igraph', 'tidygraph', 
+             'ggraph', 'visNetwork', 
+             'lubridate', 'clock',
+             'tidyverse', 'ggmap',
+             'rmarkdown')
+for(p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+
+```{r}
+GAStech_nodes <- read_csv("data/GAStech_email_node.csv")
+GAStech_edges <- read_csv("data/GAStech_email_edge-v2.csv")
+```
+```{r}
+glimpse(GAStech_edges)
+```
+
+The code chunk below will be used to perform the changes.
+Things to learn from the code chunk above:
+
+- both dmy() and wday() are functions of **lubridate** package. lubridate is an R package that makes it easier to work with dates and times.
+- dmy() transforms the SentDate to Date data type.
+- wday() returns the day of the week as a decimal number or an ordered factor if label is TRUE. The argument abbr is FALSE keep the daya spells in full, i.e. Monday. The function will create a new column in the data.frame i.e. Weekday and the output of wday() will save in this newly created field.
+- the values in the Weekday field are in ordinal scale.
+
+## Wrangling time
+The code chunk below will be used to perform the changes.
+
+
+
+```{r}
+GAStech_edges$SentDate  = lubridate::dmy(GAStech_edges$SentDate)
+GAStech_edges$Weekday = lubridate::wday(GAStech_edges$SentDate,label=TRUE, abbr = FALSE)
+```
+
+## Wrangling attributes
+A close examination of GAStech_edges data.frame reveals that it consists of individual e-mail flow records. This is not very useful for visualisation.
+
+In view of this, we will aggregate the individual by date, senders, receivers, main subject and day of the week.
+
+Things to learn from the code chunk above:
+
+four functions from dplyr package are used. They are: filter(), group(), summarise(), and ungroup().
+The output data.frame is called GAStech_edges_aggregated.
+A new field called Weight has been added in GAStech_edges_aggregated.
+
+```{r}
+GAStech_edges_aggregated <- GAStech_edges %>%
+  filter(MainSubject == "Work related") %>%
+  group_by(source, target, Weekday) %>%
+    summarise(Weight = n()) %>%
+  filter(source!=target) %>%
+  filter(Weight > 1) %>%
+  ungroup()
+```
+
+## Reviewing the revised edges file
+
+Table below shows the data structure of the reformatted GAStech_edges data frame
+
+```{r}
+paged_table(GAStech_edges_aggregated)
+```
+```{r}
+GAStech_graph <- tbl_graph(nodes = GAStech_nodes,
+                           edges = GAStech_edges_aggregated, 
+                           directed = TRUE)
+GAStech_graph
+```
+- You can **change which tibble data frame is active** with the activate() function. 
+- If we wanted to rearrange the rows in the edges tibble to list those with the highest "weight" first, we could use activate() and then arrange().
+
+```{r}
+GAStech_graph %>%
+  activate(edges) %>%
+  arrange(desc(Weight))
+```
+```{r}
+set.seed(1234)
+ggraph(GAStech_graph,
+       layout = "stress") + # random
+  geom_edge_link() +
+  geom_node_point() +
+  theme_graph() # remove gray background
+
+```
+```{r}
+set.seed(1234)
+ggraph(GAStech_graph,
+       layout = "stress") + # random
+  geom_edge_link(aes(width=Weight,alpha=0.2)) +
+  scale_edge_width(range = c(0.1,5))+
+  geom_node_point(aes(color=Department, 
+                      size = 3)) +
+  theme_graph() # remove gray background
+
+```
+
+## Working with facet
+
+```{r}
+set.seed(1234)
+ggraph(GAStech_graph,
+       layout = "stress") + # random
+  geom_edge_link(aes(width=Weight,alpha=0.2)) +
+  scale_edge_width(range = c(0.1,5))+
+  geom_node_point(aes(color=Department, 
+                      size = 1)) +
+  theme_graph() + # remove gray background
+  facet_edges(~Weekday)
+```
+## Change the facet
+
+```{r}
+set.seed(1234)
+ggraph(GAStech_graph,
+       layout = "stress") + # random
+  geom_edge_link(aes(width=Weight,alpha=0.2)) +
+  scale_edge_width(range = c(0.1,5))+
+  geom_node_point(aes(color=Department, 
+                      size = 1)) +
+  theme_graph() + # remove gray background
+  facet_nodes(~Department)
+```
+
+## Network with centrality metric
+
+```{r}
+GAStech_graph %>%
+  mutate(betweenness_centrality = centrality_betweenness()) %>%
+  ggraph(
+       layout = "stress") + # random
+  geom_edge_link(aes(width=Weight,
+                     alpha=0.2)) +
+  scale_edge_width(range = c(0.1,5))+
+  geom_node_point(aes(color=Department, 
+                      size = betweenness_centrality)) +
+  theme_graph() 
+```
+## Visualising Community
+
+```{r}
+g <- GAStech_graph %>%
+  mutate(community = as.factor(group_edge_betweenness(weights = Weight, directed = TRUE))) %>%
+  ggraph(layout = "fr") + 
+  geom_edge_link(aes(width=Weight), 
+                 alpha=0.2) +
+  scale_edge_width(range = c(0.1, 5)) +
+  geom_node_point(aes(colour = community))  
+g + theme_graph()
+```
+
+## Building Interactive Network Graph with visNetwork
+
+visNetwork() is a R package for network visualization, using vis.js javascript library.
+
+visNetwork() function uses a nodes list and edges list to create an interactive graph.
+
+The nodes list must include an "id" column, and the edge list must have "from" and "to" columns.
+The function also plots the labels for the nodes, using the names of the actors from the "label" column in the node list.
+The resulting graph is fun to play around with.
+
+You can move the nodes and the graph will use an algorithm to keep the nodes properly spaced.
+You can also zoom in and out on the plot and move it around to re-center it.
+
+```{r}
+GAStech_edges_aggregated <- GAStech_edges %>%
+  left_join(GAStech_nodes, by = c("sourceLabel" = "label")) %>%
+  rename(from = id) %>%
+  left_join(GAStech_nodes, by = c("targetLabel" = "label")) %>%
+  rename(to = id) %>%
+  filter(MainSubject == "Work related") %>%
+  group_by(from, to) %>%
+    summarise(weight = n()) %>%
+  filter(from!=to) %>%
+  filter(weight > 1) %>%
+  ungroup()
+visNetwork(GAStech_nodes, 
+           GAStech_edges_aggregated)
+```
+
+## Working with layout
+
+In the code chunk below, Fruchterman and Reingold layout is used.
+
+```{r}
+ visNetwork(GAStech_nodes,
+            GAStech_edges_aggregated) %>%
+   visIgraphLayout(layout = "layout_with_fr")
+```
+
+Visit Igraph to find out more about visIgraphLayout's argument.
+
+## Working with visual attributes - Nodes
+
+visNetwork() looks for a field called "group" in the nodes object and colour the nodes according to the values of the group field.
+
+The code chunk below rename Department field to group.
+```{r}
+GAStech_nodes <- GAStech_nodes %>%
+  rename(group = Department)
+```
+
+## Working with visual attributes - Nodes
+
+When we rerun the code chunk below, visNetwork shades the nodes by assigning unique colour to each category in the group field.
+
+```{r}
+visNetwork(GAStech_nodes,
+           GAStech_edges_aggregated) %>%
+  visIgraphLayout(layout = "layout_with_fr") %>%
+  visLegend() %>%
+  visLayout(randomSeed = 123)
+```
+
+## Working with visual attributes - Edges
+In the code run below visEdges() is used to symbolise the edges.
+
+- The argument arrows is used to define where to place the arrow.
+- The smooth argument is used to plot the edges using a smooth curve.
+
+```{r}
+visNetwork(GAStech_nodes,
+           GAStech_edges_aggregated) %>%
+  visIgraphLayout(layout = "layout_with_fr") %>%
+  visEdges(arrows = "to", 
+           smooth = list(enabled = TRUE, 
+                         type = "curvedCW")) %>%
+  visLegend() %>%
+  visLayout(randomSeed = 123)
+```
