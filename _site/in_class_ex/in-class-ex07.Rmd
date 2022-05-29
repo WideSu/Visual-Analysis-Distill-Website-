@@ -79,6 +79,7 @@ Table below shows the data structure of the reformatted GAStech_edges data frame
 ```{r}
 paged_table(GAStech_edges_aggregated)
 ```
+
 ```{r}
 GAStech_graph <- tbl_graph(nodes = GAStech_nodes,
                            edges = GAStech_edges_aggregated, 

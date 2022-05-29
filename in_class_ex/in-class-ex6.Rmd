@@ -51,20 +51,6 @@ tm_polygons(col = "grey60",
            border.lwd = 1) +
 tm_shape(employers) +
   tm_dots(col = "red")
-
-# sgpools <- read_csv("./data/geo_data/aspatial/SGPools_wgs84.csv")
-# view(sgpools)
-# sgpools_sf <- st_as_sf(
-#   sgpools, 
-#   coords = c("XCOORD",
-#              "YCOORD"),
-#              crs= 3414)
-# tmap_mode("view")
-# tm_shape(sgpools_sf)+
-# tm_bubbles(col = "red",
-#            size = 1,
-#            border.col = "black",
-#            border.lwd = 1)
 ```
 
 ```{r process-log-data, eval=FALSE, include=FALSE}
@@ -150,7 +136,3 @@ tm_shape(buildings)+
   tm_shape(logs_selected)+
   tm_dots(col = "red")
 ```
-
-
-
-

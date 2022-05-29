@@ -32,5 +32,6 @@ Upcoming lectures and assignments: [click here](https://isss608-ay2021-22april.n
 - Week 6 Geo data
   - [Hand-out 6](https://huanganni.netlify.app/in_class_ex/in-class-ex6.html)
   - [Take-home 4](https://huanganni.netlify.app/th_ex/th_ex4.html)
+  - [Take-home 5](https://huanganni.netlify.app/th_ex/th_ex5.html)
 - Week 6 Social Network
   - [Hand-out 7](https://huanganni.netlify.app/in_class_ex/in-class-ex07.html)
