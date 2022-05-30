@@ -1,0 +1,188 @@
+---
+title: "In Class Exercise 5"
+author:
+- name: "Huang Anni"
+  affiliation: "Singapore Management University"
+description: |
+  Geolocation data
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
+---
+
+# Install and import packages  
+
+```{r intsall-packages}
+devtools::install_github("itsleeds/od", build_vignettes = TRUE)
+packages = c('ggiraph', 'plotly', 'tidyverse', 'DT','gganimate',
+             'knitr', 'ggdist', 'scales', 'grid', 'gridExtra',
+             'patchwork','ggsignif','gghighlight',"hrbrthemes",
+             'readxl', 'gifski', 'gapminder','treemap', 'treemapify',
+             'rPackedBar','ggridges','rmarkdown','crosstalk',
+             'd3scatter','tidycensus','timetk','ggseas','lubridate',
+             'ggrepel','doSNOW','data.table','ViSiElse','sf','tmap',
+             'clock','dplyr','od')
+
+for(p in packages) {
+  if(!require(p, character.only = T)) {
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+# Data processing
+
+I generally use two data sources.
+
+- Attribute (to find the social areas)
+- Participant logs (to visualize the transportation bottleneck)
+
+```{r eval=FALSE, data-processing}
+schools <- st_sf(read_sf("./rawdata/Schools.csv", options = "GEOM_POSSIBLE_NAMES=location"))
+apartments <- read_sf("./rawdata/Apartments.csv", 
+                      options = "GEOM_POSSIBLE_NAMES=location")
+restaurants <- read_sf("./rawdata/Restaurants.csv", 
+                       options = "GEOM_POSSIBLE_NAMES=location")
+pubs <- st_sf(read_sf("./rawdata/Pubs.csv", 
+                      options = "GEOM_POSSIBLE_NAMES=location"))
+employers <- st_sf(read_sf("./rawdata/Employers.csv", 
+                           options = "GEOM_POSSIBLE_NAMES=location"))
+
+schools$category <- 'school'
+buildings$category <- 'building'
+apartments$category <- 'apartment'
+restaurants$category <- 'restaurant'
+pubs$category <- 'pub'
+employers$category <- 'workplace'
+idx <- c('location','category')
+all_points <- rbind(schools[,idx],apartments[,idx],restaurants[,idx],pubs[,idx],employers[,idx])
+style_df <- data.frame(category = c('school', 'apartment', 'restaurant', 'pub'), 
+                       color=c('red', 'grey', 'green', 'orange'),
+                       shape=c(21,21,21,21), 
+                       size=c(0.5,0.01,0.1,0.1))
+
+all_points <- all_points %>%
+  merge(style_df, by = 'category')
+st_write(all_points, "./data/allpoints.shp", delete_dsn=TRUE)
+social_points <- all_points %>%
+  filter(all_points$category %in% c('pub','restaurant'))
+st_write(social_points, "./data/socialpoints.shp", delete_dsn=TRUE)
+logs_selected <- data.frame()
+for (n in c(1:6)) {
+  logs <- read_sf(paste0("rawdata/Activity Logs/ParticipantStatusLogs",n,".csv"), 
+                options = "GEOM_POSSIBLE_NAMES=currentLocation") %>%
+        filter(year(timestamp) == 2022 & month(timestamp) == 3) %>%
+        mutate(Timestamp = date_time_parse(timestamp, zone="", format = "%Y-%m-%dT%H:%M:%S")) %>%
+        mutate(day = get_day(Timestamp)) %>%
+        filter(currentMode == "Transport")
+  
+  logs_selected <- rbind(logs_selected, logs)
+}
+st_write(logs_selected, "./data/logs_selected.shp", delete_dsn=TRUE)
+st_write(logs,'./data/logs_march.shp', delete_dsn=TRUE)
+```
+
+# 1. Social Areas of Ohio City
+
+We have the location data of apartments, schools, restaurants and pubs in Ohio city. I use the location of **restaurant** and **pubs** for social areas. As we can see, the social areas in Ohio City are in the **North West**, **Central**, and **South East** areas as shown in Figure 1.
+
+```{r plot-1-social-areas}
+library(tmap)
+buildings <- st_sf(read_sf("./rawdata/Buildings.csv", options = "GEOM_POSSIBLE_NAMES=location"))
+social_points <- st_read("./data/socialpoints.shp", stringsAsFactors = FALSE)
+
+tmap_mode("plot") +
+tm_shape(buildings, simplify = 0.001, keep.units = TRUE, keep.subunits = TRUE)+
+tm_borders(col='grey') +
+tm_shape(social_points) +
+  tm_dots(col = "color",
+          size= "size", 
+          shape = "shape",  
+          legend.shape.show = FALSE, 
+          legend.size.show=FALSE
+          ) +
+  tm_compass(type="4star", position=c("right", "top"), show.labels = 3, size=2) +
+  tm_add_legend('symbol', 
+ col = c('green', 'orange'),
+ border.col = "grey40",
+ size = c(0.5,0.5),
+ shape = c(21,21),
+ labels = c('restaurant', 'pub'),
+ title="Social Area Type") +
+  tm_layout(inner.margins = 0,
+            main.title = "Fig1: Social areas in Ohio")
+  #tm_facets(by = "category")
+```
+
+# 2. Where are the busiest areas?
+
+I use the log data about transporation for all participants in March and then use KMEANS clustering to find that there are four distinct busiest areas which are shown in Figure 2.
+
+```{r plot-2-distinct-busy-area}
+library(od)
+logs <- st_read("./data/logs_selected.shp", stringsAsFactors = FALSE)
+
+logs <- logs %>%
+  filter(duplicated(prtcpnI) == FALSE)
+
+xy <- sfc_point_to_matrix(logs$geometry)[,1]
+library(stats)
+center_id <- kmeans(xy, centers=4)
+logs$color <- center_id$cluster
+
+tmap_mode("plot")
+tm_shape(buildings)+
+tm_polygons(col = "grey60",
+           size = 1,
+           border.col = "black",
+           border.lwd = 1) +
+tm_shape(logs) +
+  tm_dots(col = "color",
+          size= 0.2, 
+          shape = 21,  
+          legend.shape.show = FALSE, legend.size.show=FALSE) +
+  tm_layout(inner.margins = 0,
+            main.title = "Fig2: Busiest areas")
+```
+
+```{r eval=FALSE, data-processing4plot-2}
+hex <- st_make_grid(buildings, 
+                    cellsize=100, 
+                    square=FALSE) %>%
+  st_sf() %>%
+  rowid_to_column('hex_id')
+logs_selected <- st_read("./data/logs_selected.shp", stringsAsFactors = FALSE)
+points_in_hex <- st_join(logs_selected, hex, join=st_within) %>%
+  st_set_geometry(NULL) %>%
+  count(name='pointCount', hex_id)
+
+hex <- st_make_grid(buildings,
+                    cellsize=100,
+                    square=FALSE) %>%
+  st_sf() %>%
+  rowid_to_column('hex_id')
+hex_combined <- hex %>%
+  left_join(points_in_hex, 
+            by = 'hex_id') %>%
+  replace(is.na(.), 0)
+
+saveRDS(hex_combined,'./data/hex_combined.rds')
+```
+
+# 3. Traffic bottleneck
+And I find that the traffic bottleneck is on the **corner of the buildings** as shown in Figure 3.
+
+```{r plot-3}
+hex_combined <- readRDS('./data/hex_combined.rds')
+tm_shape(hex_combined %>%
+           filter(pointCount > 0))+
+  tm_fill("pointCount",
+          n = 10,
+          style = "quantile") +
+  tm_borders(alpha = 0.1) +
+  tm_layout(inner.margins = 0,
+            main.title = "Fig3: Transport bottleneck")
+```
+
+
