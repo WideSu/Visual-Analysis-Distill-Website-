@@ -94,8 +94,8 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 
 
   <!--  https://schema.org/Article -->
-  <meta property="article:published" itemprop="datePublished" content="2022-06-03" />
-  <meta property="article:created" itemprop="dateCreated" content="2022-06-03" />
+  <meta property="article:published" itemprop="datePublished" content="2022-06-04" />
+  <meta property="article:created" itemprop="dateCreated" content="2022-06-04" />
   <meta name="article:author" content="Huang Anni" />
 
   <!--  https://developers.facebook.com/docs/sharing/webmasters#markup -->
@@ -113,7 +113,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   <!--radix_placeholder_rmarkdown_metadata-->
 
   <script type="text/json" id="radix-rmarkdown-metadata">
-  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","author","description","output","date"]}},"value":[{"type":"character","attributes":{},"value":["In Class Exercise 6"]},{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","affiliation"]}},"value":[{"type":"character","attributes":{},"value":["Huang Anni"]},{"type":"character","attributes":{},"value":["Singapore Management University"]}]}]},{"type":"character","attributes":{},"value":["Social Network\n"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["distill::distill_article"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["toc","toc_depth"]}},"value":[{"type":"logical","attributes":{},"value":[true]},{"type":"integer","attributes":{},"value":[3]}]}]},{"type":"character","attributes":{},"value":["06-03-2022"]}]}
+  {"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["title","author","description","output","date"]}},"value":[{"type":"character","attributes":{},"value":["In Class Exercise 6"]},{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","affiliation"]}},"value":[{"type":"character","attributes":{},"value":["Huang Anni"]},{"type":"character","attributes":{},"value":["Singapore Management University"]}]}]},{"type":"character","attributes":{},"value":["Social Network\n"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["distill::distill_article"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["toc","toc_depth"]}},"value":[{"type":"logical","attributes":{},"value":[true]},{"type":"integer","attributes":{},"value":[3]}]}]},{"type":"character","attributes":{},"value":["06-04-2022"]}]}
   </script>
   <!--/radix_placeholder_rmarkdown_metadata-->
   
@@ -2504,7 +2504,7 @@ distill-header .nav a {
 <!--radix_placeholder_front_matter-->
 
 <script id="distill-front-matter" type="text/json">
-{"title":"In Class Exercise 6","description":"Social Network","authors":[{"author":"Huang Anni","authorURL":"#","affiliation":"Singapore Management University","affiliationURL":"#","orcidID":""}],"publishedDate":"2022-06-03T00:00:00.000+08:00","citationText":"Anni, 2022"}
+{"title":"In Class Exercise 6","description":"Social Network","authors":[{"author":"Huang Anni","authorURL":"#","affiliation":"Singapore Management University","affiliationURL":"#","orcidID":""}],"publishedDate":"2022-06-04T00:00:00.000+08:00","citationText":"Anni, 2022"}
 </script>
 
 <!--/radix_placeholder_front_matter-->
@@ -2523,7 +2523,7 @@ distill-header .nav a {
 <div class="d-byline">
   Huang Anni  (Singapore Management University)
   
-<br />06-03-2022
+<br />06-04-2022
 </div>
 
 <div class="d-article">
@@ -2544,10 +2544,12 @@ processing</a></li>
 USA by creating data visualization with tmap.</p>
 <p>With reference to point 2 in Challenge 1 of VAST Challenge 2022, the
 following questions will be addressed:</p>
-<p>Consider the social activities in the community. What patterns do you
-see in the social networks in the town? Describe up to ten significant
-patterns you observe, with evidence and rationale. Limit your response
-to 10 images and 500 words.</p>
+<p>Consider the social activities in the community.</p>
+<ul>
+<li>What patterns do you see in the social networks in the town?</li>
+<li>Describe up to ten significant patterns you observe, with evidence
+and rationale. Limit your response to 10 images and 500 words.</li>
+</ul>
 <h1 id="install-and-import-packages">Install and import packages</h1>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
@@ -2572,14 +2574,31 @@ to 10 images and 500 words.</p>
 </div>
 </div>
 <h1 id="data-processing">Data processing</h1>
-<p>I generally use two data sources.</p>
+<p>The data sets used in this take home exercise is from the social
+network journals of participants in Ohio City. We can build Edge and
+Node datasets for social network using this dataset.</p>
+<p>The dataset consists of three columns:</p>
 <ul>
-<li>Attribute (to find the social areas)</li>
-<li>Participant logs (to visualize the transportation bottleneck)</li>
+<li>timestamp</li>
+<li>participantIdFrom</li>
+<li>participantIdTo</li>
 </ul>
+<p>There are two data sets. One contains the nodes data and the other
+contains the edges (also know as link) data.</p>
 <div class="layout-chunk" data-layout="l-body">
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class="va">social_network</span> <span class="op">&lt;-</span> <span class="fu">read_csv</span><span class="op">(</span><span class="st">&quot;./raw_data/SocialNetwork.csv&quot;</span><span class="op">)</span>
+<span class="co"># GAStech_nodes &lt;- social_network %&gt;%</span>
+<span class="co">#   group_by(unique(participantIdFrom)</span>
+
+<span class="va">GAStech_nodes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sets.html">intersect</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">social_network</span><span class="op">$</span><span class="va">participantIdFrom</span><span class="op">)</span>,<span class="fu"><a href="https://rdrr.io/r/base/unique.html">unique</a></span><span class="op">(</span><span class="va">social_network</span><span class="op">$</span><span class="va">participantIdTo</span><span class="op">)</span><span class="op">)</span>
+
+<span class="va">sorted_nodes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sort.html">sort</a></span><span class="op">(</span><span class="va">GAStech_nodes</span><span class="op">)</span>
+<span class="va">nodesId</span> <span class="op">&lt;-</span> <span class="fl">0</span><span class="op">:</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html">length</a></span><span class="op">(</span><span class="va">sorted_nodes</span><span class="op">)</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span>
+<span class="va">nodeIdDf</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>Id <span class="op">=</span> <span class="va">nodesId</span>, Index <span class="op">=</span> <span class="va">sorted_nodes</span><span class="op">)</span>
+
+<span class="va">nodeIdDf</span><span class="op">$</span><span class="va">Index</span> <span class="op">&lt;-</span> <span class="va">sorted_nodes</span>
+<span class="fu">paged_table</span><span class="op">(</span><span class="va">social_network</span><span class="op">)</span>
 </code></pre>
 </div>
 </div>

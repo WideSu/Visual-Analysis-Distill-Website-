@@ -17,12 +17,12 @@ In this take-home exercise, we reveal the patterns of life in Ohio, USA by creat
 
 With reference to point 2 in Challenge 1 of VAST Challenge 2022, the following questions will be addressed:
 
-Consider the social activities in the community. 
+Consider the social activities in the community.
 
-- What patterns do you see in the social networks in the town? 
-- Describe up to ten significant patterns you observe, with evidence and rationale. Limit your response to 10 images and 500 words.
+-   What patterns do you see in the social networks in the town?
+-   Describe up to ten significant patterns you observe, with evidence and rationale. Limit your response to 10 images and 500 words.
 
-# Install and import packages  
+# Install and import packages
 
 ```{r intsall-packages}
 devtools::install_github("itsleeds/od", build_vignettes = TRUE)
@@ -50,9 +50,9 @@ The data sets used in this take home exercise is from the social network journal
 
 The dataset consists of three columns:
 
-- timestamp
-- participantIdFrom
-- participantIdTo
+-   timestamp
+-   participantIdFrom
+-   participantIdTo
 
 There are two data sets. One contains the nodes data and the other contains the edges (also know as link) data.
 
@@ -70,5 +70,3 @@ nodeIdDf <- data.frame(Id = nodesId, Index = sorted_nodes)
 nodeIdDf$Index <- sorted_nodes
 paged_table(social_network)
 ```
-
-
