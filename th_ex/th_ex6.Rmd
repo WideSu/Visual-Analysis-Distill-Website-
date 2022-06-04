@@ -1,0 +1,74 @@
+---
+title: "In Class Exercise 6"
+author:
+- name: "Huang Anni"
+  affiliation: "Singapore Management University"
+description: |
+  Social Network
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
+---
+
+# 1. Overview
+
+In this take-home exercise, we reveal the patterns of life in Ohio, USA by creating data visualization with tmap.
+
+With reference to point 2 in Challenge 1 of VAST Challenge 2022, the following questions will be addressed:
+
+Consider the social activities in the community. 
+
+- What patterns do you see in the social networks in the town? 
+- Describe up to ten significant patterns you observe, with evidence and rationale. Limit your response to 10 images and 500 words.
+
+# Install and import packages  
+
+```{r intsall-packages}
+devtools::install_github("itsleeds/od", build_vignettes = TRUE)
+packages = c('ggiraph', 'plotly', 'tidyverse', 'DT','gganimate',
+             'knitr', 'ggdist', 'scales', 'grid', 'gridExtra',
+             'patchwork','ggsignif','gghighlight',"hrbrthemes",
+             'readxl', 'gifski', 'gapminder','treemap', 'treemapify',
+             'rPackedBar','ggridges','rmarkdown','crosstalk',
+             'd3scatter','tidycensus','timetk','ggseas','lubridate',
+             'ggrepel','doSNOW','data.table','ViSiElse','sf','tmap',
+             'clock','dplyr','od','igraph', 'tidygraph', 
+             'ggraph', 'visNetwork', 'lubridate', 'clock','tidyverse', 'graphlayouts')
+
+for(p in packages) {
+  if(!require(p, character.only = T)) {
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+
+# Data processing
+
+The data sets used in this take home exercise is from the social network journals of participants in Ohio City. We can build Edge and Node datasets for social network using this dataset.
+
+The dataset consists of three columns:
+
+- timestamp
+- participantIdFrom
+- participantIdTo
+
+There are two data sets. One contains the nodes data and the other contains the edges (also know as link) data.
+
+```{r eval=FALSE, data-processing}
+social_network <- read_csv("./raw_data/SocialNetwork.csv")
+# GAStech_nodes <- social_network %>%
+#   group_by(unique(participantIdFrom)
+
+GAStech_nodes <- intersect(unique(social_network$participantIdFrom),unique(social_network$participantIdTo))
+
+sorted_nodes <- sort(GAStech_nodes)
+nodesId <- 0:(length(sorted_nodes)-1)
+nodeIdDf <- data.frame(Id = nodesId, Index = sorted_nodes)
+
+nodeIdDf$Index <- sorted_nodes
+paged_table(social_network)
+```
+
+
