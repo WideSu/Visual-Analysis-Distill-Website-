@@ -364,7 +364,7 @@ ggscatterstats(
 )
 ```
 
-And the strength of connection is not strong as well.
+But the **strength of connection** is **stronger**.
 
 ```{r,eval=TRUE,cache=TRUE}
 library(ggside)
@@ -373,7 +373,7 @@ library(dplyr, warn.conflicts = FALSE)
 ggscatterstats(
   data            = connection_strength,
   x               = wage,
-  y               = friends_num,
+  y               = strength,
   type            = "bayes",
   xlab            = "wage",
   ylab            = "friends num",
