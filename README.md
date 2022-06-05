@@ -10,8 +10,9 @@ This is the project we do during ISSS608-Visual Analysis course[(Course material
 ## VAST Challenge
 Anticipating rapid growth, the city of Engagement, Ohio USA is doing a participatory urban planning exercise to understand the current state of the city and identify opportunities for future growth. About 1000 representative residents in this modest-sized city have agreed to provide data using the city’s urban planning app, which records the places they visit, their spending, and their purchases, among other things. From these volunteers, the city will have data to assist with their major community revitalization efforts, including how to allocate a very large city renewal grant they have recently received. As a visual analytics expert, you have joined the city planning team to make sense of the data provided by these residents.
 
-## How to choose the right visualization?
-<img width="649" alt="image" src="https://user-images.githubusercontent.com/44923423/164896049-0c3d130d-2dd8-4f4f-878e-3a1cda895fca.png">
+## Recent post
+
+This week, I am doing [Social Network Analysis](https://huanganni.netlify.app/th_ex/th_ex6.html), you can check my website to see those interesting insights for VAST challenge.
 
 ## Gallery
 
