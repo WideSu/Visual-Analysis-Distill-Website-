@@ -24,7 +24,7 @@ Upcoming lectures and assignments: [click here](https://isss608-ay2021-22april.n
   - [Take-home excercise 2](https://huanganni.netlify.app/th_ex/th_ex2.html)
 - Week 3 DataPrep & TreeMap
   - [Hand-out 3](https://huanganni.netlify.app/th_ex/hd_3.html)
-  - [**Take-home excercise 3**](https://huanganni.netlify.app/th_ex/th_ex3.html)
+  - [Take-home excercise 3](https://huanganni.netlify.app/th_ex/th_ex3.html)
 - Week 4 Building Funnel Plot with R
   - [Hand-out 4](https://huanganni.netlify.app/in_class_ex/in-class-ex-04.html)
 - Week 5 Time Series and Event Log
@@ -35,4 +35,4 @@ Upcoming lectures and assignments: [click here](https://isss608-ay2021-22april.n
   - [Take-home 5](https://huanganni.netlify.app/th_ex/th_ex5.html)
 - Week 6 Social Network
   - [Hand-out 7](https://huanganni.netlify.app/in_class_ex/in-class-ex07.html)
-  - [Take-home 6](https://huanganni.netlify.app/th_ex/th_ex6.html)
+  - [**Take-home 6**](https://huanganni.netlify.app/th_ex/th_ex6.html)

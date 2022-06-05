@@ -22,7 +22,7 @@ Consider the social activities in the community.
 -   What patterns do you see in the social networks in the town?
 -   Describe up to ten significant patterns you observe, with evidence and rationale. Limit your response to 10 images and 500 words.
 
-# Set up
+# 2. Set up
 
 Before we start to draw graphs, there are some work to do:
 
@@ -241,7 +241,7 @@ write_rds(connection_strength,'./data/connection_strength.rds')
 write_rds(rich_participants_graph,"./data/rich_participants_graph.rds")
 ```
 
-# Analyze social network data
+# 3. Analyze social network data
 
 ## Read in processed data
 
@@ -263,7 +263,7 @@ friends_num_df <- read_rds('./data/friends_num.rds')
 connection_strength <- read_rds('./data/connection_strength.rds')
 ```
 
-## Is there relationship with people's education level and social interaction times?
+## Is there any relationship with people's education level and social interaction times?
 
 Suppose the first thing we want to inspect is the distribution of the number of social interactions for participants of different education levels. We also want to know if the mean differences in the number of social interaction between different education levels is statistically significant.
 
