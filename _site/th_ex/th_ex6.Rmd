@@ -245,7 +245,7 @@ write_rds(rich_participants_graph,"./data/rich_participants_graph.rds")
 
 ## Read in processed data
 
-```{r read-in-processed-data, eval= TRUE,cache=TRUE}
+```{r read-in-processed-data, eval= TRUE, cache=TRUE}
 rich_participants_graph <- read_csv("./data/rich_participants_graph.rds")
 edges_weekday <- read_rds('./data/edges_weekday.rds')
 weekday_nodes <- read_rds('./data/nodes_weekday.rds')
@@ -269,7 +269,7 @@ Suppose the first thing we want to inspect is the distribution of the number of 
 
 I apply ANOVA test to see if there's any relationship between social interaction tims and people's education level. We can see that there's a huge difference between the median social interaction times within different groups. As we can see the median social activeness is positively correlated with degree level. **People with higher degree is more active.**
 
-```{r stats-plot, echo=FALSE, cache=TRUE}
+```{r stats-plot, echo=TRUE, cache=TRUE}
 set.seed(1234)
 myvars <- c("participantId","educationLevel", "interaction_num")
 newdata <- interaction_num_df[myvars]
