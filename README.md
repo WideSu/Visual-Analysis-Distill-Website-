@@ -1,8 +1,8 @@
 # VA
 [![Netlify Status](https://api.netlify.com/api/v1/badges/830a9b84-6ca3-42c8-a268-23517552656c/deploy-status)](https://app.netlify.com/sites/huanganni/deploys)
 
-[(netify website)](https://master--huanganni.netlify.app/)
-[(tableau website)](https://public.tableau.com/app/profile/huang.anni/viz/In-class-exc2/Dashboard1?publish=yes)
+- [netify website)](https://master--huanganni.netlify.app/)
+- [tableau website](https://public.tableau.com/app/profile/huang.anni/viz/In-class-exc2/Dashboard1?publish=yes)
 
 ## What this project about?
 This is the project we do during ISSS608-Visual Analysis course[(Course material)](https://isss608-ay2021-22april.netlify.app/) which uses data from [VAST Challenge 2022](https://vast-challenge.github.io/2022/) to  make sense of the data provided by these residents. 
