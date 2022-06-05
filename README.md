@@ -16,6 +16,9 @@ Anticipating rapid growth, the city of Engagement, Ohio USA is doing a participa
 ## Gallery
 
 <div class='tableauPlaceholder' id='viz1654322011762' style='position: relative'><noscript><a href='#'><img alt='AgeDashboard ' src='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;Ag&#47;AgepyramidindifferentregionsofSingapore&#47;AgeDashboard&#47;1_rss.png' style='border: none' /></a></noscript><object class='tableauViz'  style='display:none;'><param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
-
+  
+<div class='tableauPlaceholder' id='viz1654460609100' style='position: relative'><noscript><a href='#'><img alt='AirPlane Trend Analysis ' src='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;Ai&#47;AirPlaneTrendAnalysis&#47;AirPlaneTrendAnalysis&#47;1_rss.png' style='border: none' />
+  
 ## Reference books
+  
 Healy, Kieran (2019) Data Visualization: A practical introduction [(online version)](https://socviz.co/)
