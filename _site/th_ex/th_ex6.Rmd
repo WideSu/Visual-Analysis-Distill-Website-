@@ -1,0 +1,307 @@
+---
+title: "In Class Exercise 6"
+author:
+- name: "Huang Anni"
+  affiliation: "Singapore Management University"
+description: |
+  Social Network
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
+---
+
+# 1. Overview
+
+In this take-home exercise, we reveal the patterns of life in Ohio, USA by creating data visualization with tmap.
+
+With reference to point 2 in Challenge 1 of VAST Challenge 2022, the following questions will be addressed:
+
+Consider the social activities in the community.
+
+-   What patterns do you see in the social networks in the town?
+-   Describe up to ten significant patterns you observe, with evidence and rationale. Limit your response to 10 images and 500 words.
+
+# Set up
+
+Before we start to draw graphs, there are some work to do:
+
+-   [Install and import packages](#Install%20and%20import%20packages)
+-   Read in raw data
+-   Data processing
+-   Save processed data into rda file
+
+## Install and import packages
+
+To draw social network plots, I use igraph.
+
+```{r intsall-packages}
+devtools::install_github("itsleeds/od", build_vignettes = TRUE)
+packages = c('ggiraph', 'plotly', 'tidyverse', 'DT','gganimate',
+             'knitr', 'ggdist', 'scales', 'grid', 'gridExtra',
+             'patchwork','ggsignif','gghighlight',"hrbrthemes",
+             'readxl', 'gifski', 'gapminder','treemap', 'treemapify',
+             'rPackedBar','ggridges','rmarkdown','crosstalk',
+             'd3scatter','tidycensus','timetk','ggseas','lubridate',
+             'ggrepel','doSNOW','data.table','ViSiElse','sf','tmap',
+             'clock','dplyr','od','igraph', 'tidygraph', 'ggstatsplot',
+             'ggraph', 'visNetwork', 'lubridate', 'clock',
+             'tidyverse', 'graphlayouts','FunnelPlotR', 'plotly', 'knitr')
+
+for(p in packages) {
+  if(!require(p, character.only = T)) {
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+
+## Read in raw data
+
+The data sets used in this take home exercise is from the social network journals of participants in Ohio City.
+
+There are two data sets. One contains the nodes data and the other contains the edges (also know as link) data.
+
+-   SocialNetwork.csv: I use it to extract participant nodes;
+-   Participants.csv: I use it to join with the nodes in social network and get extra information of participants in social network.
+-   FinancialJourney.csv: I use it to join with the nodes in social network and get extra information about the financial status(such as income) of participants in the social network.
+
+```{r read-in-raw-data, eval=FALSE, message=FALSE, warning=FALSE}
+participants <- read_csv("./raw_data/Attributes/Participants.csv")
+social_network <- read_csv("./raw_data/Journals/SocialNetwork.csv")
+financial <- read_csv("./raw_data/Journals/FinancialJournal.csv")
+```
+
+## Data processing
+
+For participants:
+
+-   
+
+    1.  Change educationLevel into sorted factor.
+
+-   
+
+    2.  Cut ages into age groups from 17-60 with a gap of 10 years.
+
+-   
+
+    3.  Cut joviality into 5 status: 'Really Sad', 'Sad','Neutral', 'Happy'.
+
+-   
+
+    4.  Add `wage` for each participants by joining with Financial journey.
+
+For social graph:
+
+-   1.Group by participantTo, participantFrom and weekday for SocialNetwork data.
+-   2.The weight of edges is the number of interactions between nodes.
+-   3.The nodes of social graph is the participants in the edges.
+-   4.Use nodes and edges to build the graph object.
+
+For friends num:
+
+-   1.Group by participantTo, participantFrom for SocialNetwork data.
+-   2.Group by participantFrom and friends number is the count of participantTo.
+-   3.Concat participants data to get extra information of participants, like their educationLevel and haveKids.
+
+```{r data-processing, eval=FALSE,message=FALSE}
+participants$educationLevel<-factor(participants$educationLevel,ordered=TRUE,levels=c('Low','HighSchoolOrCollege',"Bachelors","Graduate"))
+brks <- c(17, 20, 30, 40, 50, 60, Inf)
+grps <- c('<=20', '21-30','31-40', '41-50', '51-60', '>60')
+participants$Age_Group <- cut(participants$age, breaks=brks, labels = grps, right = FALSE)
+brks <- c(0, 0.3, 0.5, 0.6, 1)
+grps <- c('Really Sad', 'Sad','Neutral', 'Happy')
+participants$Joviality_Group <- cut(participants$joviality, breaks=brks, labels = grps, right = FALSE)
+income_par <- financial %>% 
+  filter(category %in% c('Wage')) %>%
+  group_by(participantId,month=lubridate::month(timestamp)) %>%
+  summarise(wage = round(sum(amount),1)) %>%
+  ungroup()%>%
+  group_by(participantId) %>%
+  summarise(wage = mean(wage)) %>%
+  ungroup()
+participants <- participants %>%
+  inner_join(income_par, by = "participantId")
+
+socialNetwork_edges <- social_network %>%
+  group_by(from=participantIdFrom, to=participantIdTo) %>%
+  filter(from!=to) %>%
+  summarise(weight = n()) %>%
+  filter(weight > 1) %>%
+  ungroup()
+
+parId_in_socialNetwork <- union(unique(socialNetwork_edges$from),unique(socialNetwork_edges$to)) %>%
+  sort()
+parId_in_socialNetwork <- data.frame(participantId = parId_in_socialNetwork)
+socialNetwork_nodes <- participants %>% 
+  inner_join(parId_in_socialNetwork, by = "participantId")
+socialNetwork_nodes$id <- socialNetwork_nodes$participantId
+socialNetwork_graph <- igraph::graph_from_data_frame(socialNetwork_edges, 
+                                                     vertices = socialNetwork_nodes)%>%
+  as_tbl_graph()
+
+friends_num_df <- socialNetwork_edges %>%
+  group_by(from) %>%
+  filter(from!=to) %>%
+  group_by(participantId = from) %>%
+  summarise(friends_num = n()) %>%
+  ungroup() %>%
+  inner_join(participants, by = "participantId")
+
+interaction_num_df <- socialNetwork_edges %>%
+  group_by(participantId = from) %>%
+  filter(participantId!=to) %>%
+  summarise(interaction_num = sum(weight)) %>%
+  ungroup() %>%
+  inner_join(participants, by = "participantId")
+
+top5_most_active<-interaction_num_df %>%
+  arrange(desc(interaction_num)) %>%
+  slice(1:5)
+top5_most_active$id <- top5_most_active$participantId
+top5_most_active_nodes <- top5_most_active 
+top5_most_active_edges <- social_network %>%
+  group_by(from=participantIdFrom, to=participantIdTo) %>%
+  filter((from!=to)&
+         (from %in% top5_most_active$id)) %>%
+  summarise(weight = n()) %>%
+  filter(weight > 1) %>%
+  ungroup()
+parId_in_socialNetwork <- union(unique(top5_most_active_edges$from),unique(top5_most_active_edges$to)) %>%
+  sort()
+parId_in_socialNetwork <- data.frame(participantId = parId_in_socialNetwork)
+top5_most_active_nodes <- participants %>% 
+  inner_join(parId_in_socialNetwork, by = "participantId")
+top5_most_active_nodes$id <- top5_most_active_nodes$participantId
+
+top5_most_active_graph <- igraph::graph_from_data_frame(top5_most_active_edges, 
+                                                     vertices = top5_most_active_nodes)%>%
+  as_tbl_graph()
+
+edges_weekday <- social_network %>%
+  group_by(from=participantIdFrom, to=participantIdTo, weekday = lubridate::wday(timestamp)) %>%
+  filter(from!=to) %>%
+  summarise(weight = n()) %>%
+  filter(weight > 1) %>%
+  ungroup()
+parId_in_socialNetwork <- union(unique(edges_weekday$from),unique(edges_weekday$to)) %>%
+  sort()
+parId_in_socialNetwork <- data.frame(participantId = parId_in_socialNetwork)
+weekday_nodes <- participants %>% 
+  inner_join(parId_in_socialNetwork, by = "participantId")
+weekday_nodes$id <- weekday_nodes$participantId
+weekday_graph <- igraph::graph_from_data_frame(edges_weekday, 
+                                                     vertices = weekday_nodes)%>%
+  as_tbl_graph()
+```
+
+## Save the processed data
+
+```{r create-graph-data, eval= FALSE}
+write_rds(edges_weekday, './data/edges_weekday.rds')
+write_rds(weekday_nodes, './data/nodes_weekday.rds')
+write_rds(weekday_graph, './data/graph_weekday.rds')
+write_rds(top5_most_active_graph, './data/top5_most_active_graph.rds')
+write_rds(top5_most_active_nodes, './data/top5_most_active_nodes.rds')
+write_rds(top5_most_active_edges, './data/top5_most_active_edges.rds')
+write_rds(interaction_num_df,'./data/interaction_num.rds')
+write_rds(socialNetwork_graph,'./data/socialNetwork_graph.rds')
+write_rds(socialNetwork_nodes,'./data/socialNetwork_nodes.rds')
+write_rds(socialNetwork_edges,'./data/socialNetwork_edges.rds')
+write_rds(friends_num_df,'./data/friends_num.rds')
+```
+
+# Analyze social network data
+
+## Read in processed data
+
+```{r read-in-processed-data, eval= TRUE,cache=TRUE}
+edges_weekday <- read_rds('./data/edges_weekday.rds')
+weekday_nodes <- read_rds('./data/nodes_weekday.rds')
+weekday_graph <- read_rds('./data/graph_weekday.rds')
+top5_most_active_graph <- read_rds('./data/top5_most_active_graph.rds')
+top5_most_active_nodes <- read_rds('./data/top5_most_active_nodes.rds')
+top5_most_active_edges <- read_rds('./data/top5_most_active_edges.rds')
+interaction_num_df <- read_rds('./data/interaction_num.rds')
+social_network <- read_csv("./raw_data/Journals/SocialNetwork.csv")
+socialNetwork_graph <- read_rds('./data/socialNetwork_graph.rds')
+socialNetwork_nodes <- read_rds('./data/socialNetwork_nodes.rds')
+socialNetwork_edges <- read_rds('./data/socialNetwork_edges.rds')
+friends_num_df <- read_rds('./data/friends_num.rds')
+```
+
+## Is there relationship with people's education level and social interaction times?
+
+Suppose the first thing we want to inspect is the distribution of the number of social interactions for participants of different education levels. We also want to know if the mean differences in the number of social interaction between different education levels is statistically significant.
+
+I apply ANOVA test to see if there's any relationship between social interaction tims and people's education level. We can see that there's a huge difference between the median social interaction times within different groups. As we can see the median social activeness is positively correlated with degree level. **People with higher degree is more active.**
+
+```{r stats-plot, echo=FALSE, cache=TRUE}
+set.seed(1234)
+myvars <- c("participantId","educationLevel", "interaction_num")
+newdata <- interaction_num_df[myvars]
+ggbetweenstats(
+  data = newdata,
+  outlier.tagging = TRUE, ## whether outliers should be flagged
+  outlier.label = participantId, ## label to attach to outlier values
+  outlier.label.args = list(color = "red"), ## outlier point label color
+  ## turn off messages
+  ggtheme = ggplot2::theme_gray(), ## a different theme
+  package = "yarrr", ## package from which color palette is to be take
+  palette = "info2", ## choosing a different color palette
+  title = "Fig1. Comparison of social activeness in different education level",
+  caption = "Source: VAST Challenge",
+  x = educationLevel,
+  y = interaction_num,
+  type = "robust", ## type of statistics
+  xlab = "Education Level", ## label for the x-axis
+  ylab = "Social Interactions", ## label for the y-axis
+  plot.type = "boxviolin", ## type of plot
+)
+```
+## Is there relationship with people's wage and social zone size?
+
+I plotted a scatter plot of the social zone size and people's wage. Surprisingly, the rich people do not have a big social zone.
+
+```{r network-size-plot}
+p2 <- ggplot(data=friends_num_df, aes(x = wage, 
+                                      y = friends_num, 
+                                      text =paste("Wage:", round(wage,2),
+                                                  "\nNo. of Friends:",friends_num)))+
+  geom_point(aes(size=friends_num,color=friends_num), alpha = 1/10) +
+  labs(y= 'No. of Interacted People', x= 'Wage',
+       title = "Fig2: Relatiobship between wage and social zone size",
+       subtitle = "People who has high wage tend to keep a smalll social zone")
+
+ggplotly(p2,tooltip = c("text"))
+```
+## The top-5 most active people with different Joviality Status
+
+As we can see, people who are happy has a strong connection with each other.
+
+```{r social-network-groupby-educationlevel,eval=TRUE}
+ggraph(top5_most_active_graph,
+       layout = "fr") + # random
+  geom_edge_link(aes(width=weight,alpha=0.2)) +
+  geom_node_point(aes(color=Joviality_Group, 
+                      size = 0.3)) +
+  labs(title = "Fig3: The top-5 most active people with different Joviality Status",
+       subtitle = 'People who are happy has a strong connection with each other') +
+  theme_void() +# remove gray background +
+  facet_nodes(~Joviality_Group) 
+```
+## People's social network on weekday
+
+```{r social-network-groupby-weekday,eval=TRUE,cache=TRUE}
+ggraph(weekday_graph,
+       layout = "fr") + # random
+  geom_edge_link(aes(width=weight,alpha=0.2)) +
+  geom_node_point(aes(color=Joviality_Group, 
+                      size = 0.3)) +
+  labs(title = "Fig4: The top-5 most active people with different Joviality Status",
+       subtitle = 'People who are happy has a strong connection with each other') +
+  theme_void() +# remove gray background +
+  facet_edges(~weekday) 
+```
+
