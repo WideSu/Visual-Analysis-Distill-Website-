@@ -360,7 +360,7 @@ ggscatterstats(
   type            = "bayes",
   xlab            = "wage",
   ylab            = "friends num",
-  title = "Fig5. People's friends number for different age groups",
+  title = "Fig5. Relationship of friends number and wages",
 )
 ```
 
@@ -376,8 +376,8 @@ ggscatterstats(
   y               = strength,
   type            = "bayes",
   xlab            = "wage",
-  ylab            = "friends num",
-  title = "Fig6. People's friends number for different age groups",
+  ylab            = "strength of connections",
+  title = "Fig6. Relationship between strength of connections and wages",
 )
 ```
 
