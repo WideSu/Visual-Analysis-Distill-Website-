@@ -38,4 +38,4 @@ Upcoming lectures and assignments: [click here](https://isss608-ay2021-22april.n
   - [Take-home 6](https://huanganni.netlify.app/th_ex/th_ex6.html)
   - [Cycle-and-checkInNum on tableau](https://public.tableau.com/app/profile/huang.anni/viz/Time-seriesmapwithcycleandcheckInNum/Dashboard1?publish=yes)
 - Week 8 Dashboard design
-  - [In-class 8 Sparkline and bullet chart](https://huanganni.netlify.app/in_class_ex/in-class-ex-08.html)
+  - [In-class 8 Sparkline and bullet chart](https://huanganni.netlify.app/in_class_ex/in-class-ex08.html)
