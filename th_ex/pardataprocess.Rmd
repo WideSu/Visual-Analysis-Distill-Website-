@@ -1,0 +1,60 @@
+```{r intsall-packages}
+devtools::install_github("itsleeds/od", build_vignettes = TRUE)
+packages = c('ggiraph', 'plotly', 'tidyverse', 'DT','gganimate',
+             'knitr', 'ggdist', 'scales', 'grid', 'gridExtra',
+             'patchwork','ggsignif','gghighlight',"hrbrthemes",
+             'readxl', 'gifski', 'gapminder','treemap', 'treemapify',
+             'rPackedBar','ggridges','rmarkdown','crosstalk',
+             'd3scatter','tidycensus','timetk','ggseas','lubridate',
+             'ggrepel','doSNOW','data.table','ViSiElse','sf','tmap',
+             'clock','dplyr','od','igraph', 'tidygraph', 'ggstatsplot',
+             'ggraph', 'visNetwork', 'lubridate', 'clock',
+             'tidyverse', 'graphlayouts','FunnelPlotR', 'plotly', 'knitr',
+             'ggcorrplot','ggstatsplot','ggside')
+
+for(p in packages) {
+  if(!require(p, character.only = T)) {
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+
+```{r}
+participants <- read_csv('Datasets/attributes/participants.csv')
+financial <- read_csv("./Datasets/Journals/FinancialJournal.csv")
+
+participants <- participants %>%
+  mutate(ageGroup = case_when(
+    age <=25 ~ "25 and below",
+    age > 25 & age <=35 ~ "26-35",
+    age > 35 & age <=45 ~ "36-45",
+    age > 45 & age <=55 ~ "46-55",
+    age > 55 ~ "56 and over"))
+brks <- c(0, 0.3, 0.5, 0.6, 1)
+grps <- c('Really Sad', 'Sad','Neutral', 'Happy')
+
+participants$Joviality_Group <- cut(participants$joviality, breaks=brks, labels = grps, right = FALSE)
+income_par <- financial %>% 
+  filter(category %in% c('Wage')) %>%
+  group_by(participantId,month=lubridate::month(timestamp)) %>%
+  summarise(wage = round(sum(amount),1)) %>%
+  ungroup()%>%
+  group_by(participantId) %>%
+  summarise(wage = mean(wage)) %>%
+  ungroup()
+participants <- participants %>%
+  inner_join(income_par, by = "participantId")
+participants
+```
+
+```{r}
+monthly_finance <- financial %>%
+  group_by(month=month(timestamp), year=year(timestamp),participantId) %>%
+  
+ggplot(data = financial, 
+                     aes(x = month(timestamp),y=amount, color = category)) +
+    labs(y= 'Spend', x= 'Timestamp',
+         title = "Distribution of Spending",
+         subtitle = "Most of residents")
+```

@@ -306,12 +306,13 @@ According to the correlation plot, we can find that:
 - People who have higher salary is less happier.
 
 ```{r network-size-plot,cache=TRUE}
-ggcorrmat(
+p<-ggcorrmat(
   data     = connection_strength[c('strength',"age",'joviality','wage','friends_num')],
   colors   = c("#B2182B", "white", "#4D4D4D"),
   title    = "Fig2. Correlalogram for social network dataset",
   subtitle = "Friends num:Joviality; Friends num:strength"
 )
+p
 ```
 ## The top-5 most active people with different Joviality Status
 
