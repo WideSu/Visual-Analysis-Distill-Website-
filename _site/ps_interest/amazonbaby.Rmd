@@ -1,0 +1,56 @@
+---
+title: "Amazon Baby Product Review"
+author:
+- name: "Huang Anni"
+  affiliation: "Singapore Management University"
+description: | Amazon baby product review
+output:
+  distill::distill_article:
+    toc: true
+    toc_depth: 3
+---
+
+```{r}
+packages = c('igraph', 'tidygraph', 
+             'ggraph', 'visNetwork', 
+             'lubridate', 'clock',
+             'tidyverse', 'ggmap',
+             'rmarkdown')
+for(p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+```
+
+```{r read-in-data}
+baby_df <- read_csv("./data/ratings_baby.csv",col_names = c('userId','itemId','rating','timestamp'))
+baby_df$datetime <- as.POSIXct(baby_df$timestamp, origin = "1970-01-01") 
+baby_df$year <- lubridate::year(baby_df$datetime)
+p<-ggplot(baby_df, aes(x=rating)) + 
+  geom_histogram(color="black", 
+                 fill="white",
+                 binwidth=1
+                 )
+  
+p
+
+library(plotly)
+baby_df %>%
+  plot_ly(
+    x = ~datetime, 
+    y = ~rating, 
+    color = ~rating, 
+    frame = ~year, 
+    text = ~rating, 
+    hoverinfo = "text",
+    type = 'scatter',
+    mode = 'markers'
+  ) %>%
+  layout(
+    xaxis = list(
+      type = "log"
+    )
+  )
+```
