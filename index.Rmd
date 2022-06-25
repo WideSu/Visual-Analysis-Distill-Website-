@@ -39,3 +39,5 @@ Upcoming lectures and assignments: [click here](https://isss608-ay2021-22april.n
   - [Cycle-and-checkInNum on tableau](https://public.tableau.com/app/profile/huang.anni/viz/Time-seriesmapwithcycleandcheckInNum/Dashboard1?publish=yes)
 - Week 8 Dashboard design
   - [In-class 8 Sparkline and bullet chart](https://huanganni.netlify.app/in_class_ex/in-class-ex08.html)
+- Week 9 Financial Data Analysis
+  - [In-class 9 Candalstick and Bollinger Bands Chart](https://huanganni.netlify.app/in_class_ex/in-class-ex09.html)
