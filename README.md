@@ -19,6 +19,10 @@ This week, I am doing [Social Network Analysis](https://huanganni.netlify.app/th
 <div class='tableauPlaceholder' id='viz1654322011762' style='position: relative'><noscript><a href='#'><img alt='AgeDashboard ' src='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;Ag&#47;AgepyramidindifferentregionsofSingapore&#47;AgeDashboard&#47;1_rss.png' style='border: none' /></a></noscript><object class='tableauViz'  style='display:none;'><param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
   
 <div class='tableauPlaceholder' id='viz1654460609100' style='position: relative'><noscript><a href='#'><img alt='AirPlane Trend Analysis ' src='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;Ai&#47;AirPlaneTrendAnalysis&#47;AirPlaneTrendAnalysis&#47;1_rss.png' style='border: none' />
+
+![image](https://user-images.githubusercontent.com/44923423/194480355-a4e13de8-a388-452b-8b99-8e82d4bb4fa6.png)
+
+
   
 ## Reference books
   
